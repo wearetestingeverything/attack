@@ -3,203 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced SOC & SIEM Simulator</title>
+    <title>SIEM Correlation & SOC Analytics Architecture</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-color: #c9d1d9;
-            --accent-blue: #58a6ff;
-            --success-green: #2ea44f;
-            --error-red: #da3633;
-            --warning-orange: #d29922;
-            --purple: #bc8cff;
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --card-header: #1f2937;
+            --border-color: #374151;
+            --text-color: #d1d5db;
+            --text-muted: #9ca3af;
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --success-green: #10b981;
+            --error-red: #ef4444;
+            --warning-orange: #f59e0b;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 20px;
+            line-height: 1.5;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
+            padding-bottom: 25px;
             margin-bottom: 30px;
         }
 
-        h1 { color: #fff; margin-bottom: 5px; }
-        p { color: #8b949e; margin-top: 0; }
+        header h1 {
+            color: #ffffff;
+            font-size: 2.2rem;
+            margin: 0 0 10px 0;
+            font-weight: 800;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .badge-expert {
+            display: inline-block;
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: var(--accent-blue);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
+            grid-template-columns: 350px 1fr;
+            gap: 25px;
         }
 
         .panel {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        h2 {
-            font-size: 1.2rem;
-            margin-top: 0;
+        .panel-header {
+            background-color: var(--card-header);
+            padding: 15px 20px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            color: #fff;
+        }
+
+        .panel-header h2 {
+            font-size: 1.1rem;
+            margin: 0;
+            color: #ffffff;
+        }
+
+        .panel-body {
+            padding: 20px;
         }
 
         .source-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 25px;
         }
 
         .source-option {
-            background: #21262d;
-            padding: 8px 12px;
-            border-radius: 4px;
+            background: rgba(31, 41, 55, 0.5);
+            padding: 12px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
         }
 
-        label { cursor: pointer; display: flex; align-items: center; width: 100%; }
-        input[type="checkbox"] { margin-right: 10px; transform: scale(1.2); }
+        label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            font-weight: 500;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+            accent-color: var(--accent-blue);
+        }
         
         select {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
             color: var(--text-color);
             border-radius: 6px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background-color: var(--accent-blue);
             color: white;
             border: none;
             border-radius: 6px;
-            font-weight: bold;
+            font-weight: 700;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
-        button:hover { background-color: #1f6feb; }
+        button:hover { background-color: var(--accent-blue-hover); }
 
-        /* Pipeline Visualisierung */
         .pipeline {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            margin-top: 10px;
         }
 
         .node-row {
             display: flex;
             justify-content: space-around;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
             flex-wrap: wrap;
         }
 
         .node {
-            background: #21262d;
+            background: rgba(31, 41, 55, 0.6);
             border: 2px solid var(--border-color);
-            padding: 10px 15px;
+            padding: 12px 10px;
             border-radius: 6px;
             text-align: center;
             flex: 1;
             min-width: 100px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: all 0.4s ease;
         }
 
         .node.active-log {
             border-color: var(--warning-orange);
-            box-shadow: 0 0 10px rgba(210, 153, 34, 0.5);
-            background: #2d2415;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.1);
+            color: #ffffff;
         }
 
-        .node.siem { min-width: 90%; padding: 15px; }
+        .node.siem {
+            min-width: 100%;
+            padding: 18px;
+            font-size: 1rem;
+        }
         .node.siem.processing {
             border-color: var(--accent-blue);
-            box-shadow: 0 0 15px rgba(88, 166, 255, 0.6);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+            color: #ffffff;
         }
 
-        .node.soc-alert { min-width: 90%; padding: 15px; }
+        .node.soc-alert {
+            min-width: 100%;
+            padding: 18px;
+            font-size: 1rem;
+        }
         .node.soc-alert.triggered {
             border-color: var(--error-red);
-            background: #3c1e1e;
-            color: #ff7b72;
-            animation: pulse 1.5s infinite;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            animation: pulse 2s infinite;
         }
         .node.soc-alert.missed {
             border-color: var(--error-red);
-            background: #21262d;
+            background: rgba(31, 41, 55, 0.4);
             color: var(--error-red);
-            opacity: 0.7;
+            opacity: 0.6;
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(218, 54, 51, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(218, 54, 51, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(218, 54, 51, 0); }
+            0 { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
 
-        .arrow { text-align: center; font-size: 20px; color: var(--border-color); transition: color 0.3s; }
+        .arrow {
+            text-align: center;
+            font-size: 22px;
+            color: var(--border-color);
+            transition: color 0.4s;
+        }
         .arrow.active { color: var(--accent-blue); }
 
         .log-console {
-            background-color: #05070a;
+            background-color: #070a12;
             border: 1px solid var(--border-color);
-            font-family: 'Courier New', Courier, monospace;
-            padding: 12px;
+            font-family: monospace;
+            padding: 15px;
             border-radius: 6px;
-            height: 140px;
+            height: 160px;
             overflow-y: auto;
             margin-top: 15px;
             font-size: 0.85rem;
         }
 
-        .log-entry { margin-bottom: 4px; }
-        .log-info { color: #8b949e; }
-        .log-alert { color: #ff7b72; font-weight: bold; }
-        .log-success { color: #7ee787; }
+        .log-entry { margin-bottom: 6px; padding-left: 8px; border-left: 3px solid #4b5563; }
+        .log-warn { color: #fbbf24; border-left-color: var(--warning-orange); }
+        .log-alert { color: #f87171; font-weight: bold; border-left-color: var(--error-red); }
+        .log-success { color: #34d399; border-left-color: var(--success-green); }
 
-        /* Erklärungskasten unten */
-        .explanation-panel {
+        .analysis-section {
             grid-column: span 2;
-            background: #1f242c;
-            border: 1px solid var(--accent-blue);
-            border-radius: 6px;
-            padding: 20px;
-            margin-top: 20px;
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .explanation-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 25px;
             display: none;
         }
+        
         .explanation-title {
-            font-weight: bold;
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+        }
+
+        .architecture-guide {
+            grid-column: span 2;
+            background: linear-gradient(145deg, #111827, #1f2937);
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 30px;
+            margin-top: 10px;
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .arch-card {
+            background: rgba(17, 24, 39, 0.5);
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        .arch-card h4 {
+            margin-top: 0;
+            color: var(--accent-blue);
             font-size: 1.1rem;
             margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
     </style>
 </head>
@@ -207,118 +296,112 @@
 
 <div class="container">
     <header>
-        <h1>Advanced SOC & SIEM Simulator</h1>
-        <p>Simuliere Cyber-Angriffe und verstehe die Sichtbarkeit (Visibility) deines Security Operations Centers</p>
+        <span class="badge-expert">Enterprise Cyber Defense Framework</span>
+        <h1>SIEM Correlation & SOC Analytics Architecture</h1>
+        <p>Interaktive Demonstration: Warum moderne Angriffe nur über die Korrelation im SIEM entlarvt werden können</p>
     </header>
 
     <div class="dashboard-grid">
-        <!-- LINKS: Controls -->
         <div class="panel">
-            <h2>1. Log-Quellen im SIEM</h2>
-            <div class="source-grid">
-                <div class="source-option"><label><input type="checkbox" id="src-edr" checked> Endpoint (EDR)</label></div>
-                <div class="source-option"><label><input type="checkbox" id="src-fw" checked> Firewall (NGFW)</label></div>
-                <div class="source-option"><label><input type="checkbox" id="src-ad"> Active Directory</label></div>
-                <div class="source-option"><label><input type="checkbox" id="src-cloud"> Cloud Logs</label></div>
-                <div class="source-option"><label><input type="checkbox" id="src-ids"> Network IDS/IPS</label></div>
-                <div class="source-option"><label><input type="checkbox" id="src-honey"> Honeypot</label></div>
-            </div>
-
-            <h2>2. Angriffsmethode</h2>
-            <select id="attack-select">
-                <option value="ransomware">Ransomware & Lateral Movement</option>
-                <option value="bruteforce">Password Spraying (Cloud)</option>
-                <option value="exfiltration">DNS Data Exfiltration</option>
-                <option value="sqli">SQL Injection auf Webserver</option>
-                <option value="insider">Insider-Bedrohung (Datenklau via Admin)</option>
-            </select>
-
-            <button onclick="runSimulation()">Angriff starten</button>
-        </div>
-
-        <!-- RECHTS: Visualisierung -->
-        <div class="panel">
-            <h2>3. Live-Pipeline Visualisierung</h2>
-            <div class="pipeline">
-                <div class="node-row">
-                    <div class="node" id="node-edr">EDR</div>
-                    <div class="node" id="node-fw">Firewall</div>
-                    <div class="node" id="node-ad">Active Directory</div>
-                    <div class="node" id="node-cloud">Cloud Logs</div>
-                    <div class="node" id="node-ids">IDS/IPS</div>
-                    <div class="node" id="node-honey">Honeypot</div>
+            <div class="panel-header"><h2>1. Telemetrie & Log-Quellen</h2></div>
+            <div class="panel-body">
+                <div class="source-grid">
+                    <div class="source-option"><label><input type="checkbox" id="src-edr" checked> Endpoint Detection (EDR)</label></div>
+                    <div class="source-option"><label><input type="checkbox" id="src-ndr" checked> Network Detection (NDR)</label></div>
+                    <div class="source-option"><label><input type="checkbox" id="src-fw"> Next-Gen Firewall (NGFW)</label></div>
+                    <div class="source-option"><label><input type="checkbox" id="src-ad"> Active Directory (AD)</label></div>
+                    <div class="source-option"><label><input type="checkbox" id="src-cloud"> Cloud Infrastructure Logs</label></div>
                 </div>
-
-                <div class="arrow" id="arrow-to-siem">▼</div>
-                <div class="node-row"><div class="node siem" id="node-siem">SIEM Correlation Engine</div></div>
-                <div class="arrow" id="arrow-to-soc">▼</div>
-                <div class="node-row"><div class="node soc-alert" id="node-soc">SOC Analyst Dashboard (Bereit)</div></div>
-            </div>
-
-            <h2>4. Log-Stream</h2>
-            <div class="log-console" id="console">
-                <div class="log-entry log-info">[SYSTEM] Simulator bereit. Wählen Sie Logquellen und starten Sie den Angriff.</div>
+                <select id="attack-select">
+                    <option value="apt_silent">Advanced Persistent Threat (APT) - Der verdeckte Datendiebstahl</option>
+                    <option value="ransomware_lateral">Ransomware-Deployment & DC-Übernahme</option>
+                    <option value="cloud_compromise">Credential Stuffing mit Cloud-API-Exfiltration</option>
+                </select>
+                <button onclick="runSimulation()">Szenario ausführen</button>
             </div>
         </div>
 
-        <!-- UNTEN: Dynamische Erklärung -->
-        <div class="explanation-panel" id="explanation-box">
-            <div class="explanation-title" id="exp-title"></div>
-            <p id="exp-text" style="line-height: 1.6; margin: 0;"></p>
+        <div class="panel">
+            <div class="panel-header"><h2>2. Cross-Data-Source Pipeline</h2></div>
+            <div class="panel-body">
+                <div class="pipeline">
+                    <div class="node-row">
+                        <div class="node" id="node-edr">EDR</div>
+                        <div class="node" id="node-ndr">NDR</div>
+                        <div class="node" id="node-fw">Firewall</div>
+                        <div class="node" id="node-ad">Active Directory</div>
+                        <div class="node" id="node-cloud">Cloud Logs</div>
+                    </div>
+                    <div class="arrow" id="arrow-to-siem">▼</div>
+                    <div class="node-row"><div class="node siem" id="node-siem">SIEM Enterprise Correlation Engine</div></div>
+                    <div class="arrow" id="arrow-to-soc">▼</div>
+                    <div class="node-row"><div class="node soc-alert" id="node-soc">SOC Command Center (Warten auf Ingestion...)</div></div>
+                </div>
+                <div class="log-console" id="console">
+                    <div class="log-entry">[SYSTEM] Telemetrie-Pipelines initialisiert. Wählen Sie ein Szenario aus.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-section">
+            <div class="explanation-panel" id="exp-success-box">
+                <div class="explanation-title" style="color: var(--success-green);">🟢 SIEM Korrelation erfolgreich</div>
+                <div id="exp-success-text"></div>
+            </div>
+            <div class="explanation-panel" id="exp-fail-box">
+                <div class="explanation-title" style="color: var(--error-red);">🔴 Taktischer Blind Spot / Nicht erkannt</div>
+                <div id="exp-fail-text"></div>
+            </div>
+        </div>
+
+        <div class="architecture-guide">
+            <h3 style="color:#fff; margin-top:0;">Strategischer Leitfaden: Warum das SOC & die SIEM-Korrelation unersetzbar sind</h3>
+            <div class="arch-grid">
+                <div class="arch-card">
+                    <h4>1. Das Problem isolierter Sicherheitslösungen (Silos)</h4>
+                    <p style="margin:0; font-size:0.95rem;">Ein EDR sieht nur den Endpoint. Ein NDR sieht nur den Netzwerkverkehr. Für sich allein genommen meldet jede Quelle im besten Fall ein "leicht anormales", aber unkritisches Rauschen. Erst die zentrale Korrelation im SIEM verknüpft diese isolierten Punkte zu einer bösartigen Kette (Kill Chain).</p>
+                </div>
+                <div class="arch-card">
+                    <h4>2. Die Ganzheitlichkeit des SOC (People, Process, Technology)</h4>
+                    <p style="margin:0; font-size:0.95rem;">Technologie allein stoppt keine intelligenten Angriffe. Das SOC kombiniert das SIEM mit menschlicher Intelligenz. Analysten validieren Alarme, jagen proaktiv nach Bedrohungen (Threat Hunting) und leiten im Ernstfall die sofortige Eindämmung (Incident Response) ein.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     const scenarios = {
-        ransomware: {
-            name: "Ransomware & Lateral Movement",
+        apt_silent: {
+            name: "Advanced Persistent Threat (APT) - Der verdeckte Datendiebstahl",
             steps: [
-                { time: 400, log: "WARN - EDR: Prozess 'vssadmin.exe delete shadows' (Schattenkopien löschen) blockiert.", node: "node-edr", src: "src-edr" },
-                { time: 1000, log: "WARN - AD: Massenhafte Kerberos-Anfragen (Pre-Authentication Failures) von Host-01.", node: "node-ad", src: "src-ad" }
+                { time: 300, log: "WARN - EDR: Lokaler Host führt legitimes Tool 'ntdsutil.exe' aus (Standard-Windows-Admin-Verhalten).", node: "node-edr", src: "src-edr" },
+                { time: 800, log: "WARN - NDR: Anomalie - Server überträgt 1.2 GB Daten über HTTPS an eine externe IP.", node: "node-ndr", src: "src-ndr" }
             ],
-            detectCondition: (src) => src['src-edr'] || src['src-ad'],
-            whySuccess: "<strong>Erkannt!</strong> Das EDR-System schlägt sofort Alarm, wenn Ransomware versucht, Backups zu löschen. Selbst wenn der Endpoint offline wäre, würde das Active Directory die anschließenden lateralen Bewegungen (Kerberos-Brute-Force) im Netzwerk sichtbar machen.",
-            whyFail: "<strong>Blind Spot!</strong> Da weder EDR auf den Clients installiert ist, noch die Active-Directory-Logs an das SIEM übertragen werden, verschlüsselt die Ransomware das gesamte Netzwerk, ohne dass im SOC eine einzige Warnung eingeht."
+            detectCondition: (src) => src['src-edr'] && src['src-ndr'],
+            whySuccess: "<strong>Die Macht der Korrelation:</strong> Isoliert betrachtet ist 'ntdsutil.exe' ein normales Admin-Tool (EDR meldet nichts Kritisches). Auch ein verschlüsselter HTTPS-Datenabzug (NDR) kann ein normales Cloud-Backup sein. <strong>Das SIEM verbindet die Punkte:</strong> Wenn exakt der Host, der lokale Admin-Tools nutzt, kurz darauf gigantische Datenmengen ins Ausland funkt, schlägt die Korrelationsregel sofort Alarm.",
+            whyFail: "<strong>Fataler Blind Spot:</strong> Wenn dir EDR oder NDR fehlen, kollabiert die Erkennung. Ohne EDR sieht das SOC nur einen Datenabzug (vielleicht legitim). Ohne NDR sieht das SOC nur ein Admin-Tool. Der Angreifer kopiert unbemerkt deine gesamte Active-Directory-Datenbank aus dem Unternehmen."
         },
-        bruteforce: {
-            name: "Password Spraying (Cloud-Infrastruktur)",
+        ransomware_lateral: {
+            name: "Ransomware-Deployment & DC-Übernahme",
             steps: [
-                { time: 500, log: "WARN - Cloud: 500 fehlgeschlagene Logins aus dem TOR-Netzwerk auf 50 verschiedenen User-Konten.", node: "node-cloud", src: "src-cloud" }
+                { time: 300, log: "WARN - Firewall: Portscan (Port 445/SMB) von einem internen HR-Client in Richtung Domain Controller.", node: "node-fw", src: "src-fw" },
+                { time: 700, log: "WARN - AD: Event ID 4625 - 80 fehlgeschlagene Logins innerhalb von 5 Sekunden.", node: "node-ad", src: "src-ad" },
+                { time: 1100, log: "WARN - EDR: Unbekannte Binärdatei versucht, den Volumenschattenkopie-Dienst zu manipulieren.", node: "node-edr", src: "src-edr" }
             ],
-            detectCondition: (src) => src['src-cloud'],
-            whySuccess: "<strong>Erkannt!</strong> Die Cloud-Audit-Logs liefern globale Authentifizierungsdaten. Das SIEM korreliert die schiere Masse an Fehlversuchen über verschiedene Accounts hinweg und erkennt das 'Spraying'-Muster.",
-            whyFail: "<strong>Blind Spot!</strong> Ohne Anbindung der Cloud-Logs (z.B. Entra ID / AWS CloudTrail) an das SIEM sieht das SOC diesen Angriff überhaupt nicht. Der Angreifer errät schließlich ein Passwort und ist unbemerkt in der Cloud."
+            detectCondition: (src) => src['src-edr'] || (src['src-ad'] && src['src-fw']),
+            whySuccess: "<strong>Erkannt:</strong> Entweder schlägt das EDR direkt auf dem betroffenen System an, weil die Ransomware-Aktivität (Löschen von Backups) blockiert wird, ODER das SIEM verknüpft den internen Portscan (Firewall) mit dem anschließenden Brute-Force-Angriff im Active Directory.",
+            whyFail: "<strong>Vollständige Kompromittierung:</strong> Ohne EDR läuft die Verschlüsselung lokal ungehindert an. Fehlen dann auch noch Firewall- und AD-Logs im SIEM, agiert das SOC vollkommen blind, während sich die Ransomware lateral auf alle Server ausbreitet."
         },
-        exfiltration: {
-            name: "DNS Data Exfiltration",
+        cloud_compromise: {
+            name: "Credential Stuffing mit Cloud-API-Exfiltration",
             steps: [
-                { time: 500, log: "WARN - Firewall: Ungewöhnlich hohes DNS-Verkehrsvolumen zu unbekannter Domain (*.xyz).", node: "node-fw", src: "src-fw" },
-                { time: 1000, log: "WARN - IDS/IPS: Anomalie erkannt - DNS-Pakete enthalten verschlüsselte payloads.", node: "node-ids", src: "src-ids" }
+                { time: 400, log: "WARN - Cloud Logs: Erfolgreicher API-Login aus ungewöhnlichem Land (Geografie-Anomalie).", node: "node-cloud", src: "src-cloud" },
+                { time: 900, log: "WARN - NDR: Plötzlicher Anstieg von verschlüsselten API-Aufrufen gegen SharePoint-Endpunkte.", node: "node-ndr", src: "src-ndr" }
             ],
-            detectCondition: (src) => src['src-fw'] && src['src-ids'],
-            whySuccess: "<strong>Erkannt!</strong> Erst die Kombination aus Firewall-Verkehrsdaten (Volumen) und Deep Packet Inspection des IDS/IPS (Inhaltsanalyse der DNS-Abfragen) bestätigt, dass hier sensible Firmendaten als DNS-Anfragen getarnt nach draußen geschmuggelt werden.",
-            whyFail: "<strong>Blind Spot!</strong> Wenn nicht <em>beide</em> Quellen (Firewall und IDS) aktiv sind, reicht die Korrelation oft nicht aus. Reine Firewall-Logs zeigen nur 'normalen' DNS-Traffic (Port 53) – der Datendiebstahl bleibt unerkannt."
-        },
-        sqli: {
-            name: "SQL Injection (Angriff auf Webanwendung)",
-            steps: [
-                { time: 400, log: "WARN - IDS/IPS: Bekanntes Exploit-Muster 'UNION SELECT' in HTTP-POST-Request blockiert.", node: "node-ids", src: "src-ids" },
-                { time: 1000, log: "WARN - Honeypot: Angreifer scannt das interne Netz und greift Fake-Datenbank an.", node: "node-honey", src: "src-honey" }
-            ],
-            detectCondition: (src) => src['src-ids'] || src['src-honey'],
-            whySuccess: "<strong>Erkannt!</strong> Das IDS/IPS erkennt die typische SQL-Syntax im Netzwerkstrom. Falls der Angreifer bereits im Netz ist, schnappt die Falle zu: Der Honeypot (ein absichtlich verwundbarer Fake-Server) schlägt sofort Alarm, da reguläre Mitarbeiter diesen Server niemals kontaktieren würden.",
-            whyFail: "<strong>Blind Spot!</strong> Ohne Netzwerk-IDS fliegt der SQL-Angriff unter dem Radar. Gibt es zudem keinen Honeypot, merkt das SOC erst, dass die Datenbank kompromittiert wurde, wenn die Daten im Darknet auftauchen."
-        },
-        insider: {
-            name: "Insider-Bedrohung (Bösartiger Administrator)",
-            steps: [
-                { time: 400, log: "WARN - AD: Admin-Konto greift nachts um 03:00 Uhr auf sensible HR-Dateifreigaben zu.", node: "node-ad", src: "src-ad" },
-                { time: 1000, log: "WARN - EDR: Massiver Download von Daten auf einen unverschlüsselten USB-Stick.", node: "node-edr", src: "src-edr" }
-            ],
-            detectCondition: (src) => src['src-ad'] && src['src-edr'],
-            whySuccess: "<strong>Erkannt!</strong> Ein interner Angreifer hat valide Rechte. Nur die Korrelation aus abnormaler Verhaltenszeit (AD-Logs) und der physischen Aktion des Datenabzugs (EDR/DLP-Log) lässt im SIEM die Alarmglocken schrillen.",
-            whyFail: "<strong>Blind Spot!</strong> Da der Insider legitime Admin-Rechte besitzt, löst er keine typischen Malware-Alarme aus. Fehlen AD- oder EDR-Logs zur Verhaltensanalyse, spaziert der Mitarbeiter ungehindert mit den Firmengeheimnissen aus der Tür."
+            detectCondition: (src) => src['src-cloud'] && src['src-ndr'],
+            whySuccess: "<strong>Erkannt via Cross-Telemetry:</strong> Die Cloud-Infrastruktur meldet einen fernen Login. Das NDR-System stellt jedoch gleichzeitig fest, dass von diesem Benutzer massenhaft Daten über API-Schnittstellen gezogen werden. Das SIEM triggert sofort einen Critical Alert wegen 'Cloud Account Takeover'.",
+            whyFail: "<strong>Datenverlust in der Cloud:</strong> Ohne die Korrelation zwischen Cloud-Audit-Spuren und dem tatsächlichen Netzwerk-Durchsatz (NDR) bleibt der Account-Missbrauch unbemerkt. Der Angreifer saugt ungestört die Firmen-SharePoints leer."
         }
     };
 
@@ -339,25 +422,23 @@
             if(n.id === 'node-soc') { n.classList.add('soc-alert'); n.innerText = "SOC Analyst Dashboard (Warte...)"; }
         });
         document.querySelectorAll('.arrow').forEach(a => a.classList.remove('active'));
-        document.getElementById('explanation-box').style.display = 'none';
+        document.getElementById('exp-success-box').style.display = 'none';
+        document.getElementById('exp-fail-box').style.display = 'none';
     }
 
     function runSimulation() {
         resetPipeline();
-        
         const attackKey = document.getElementById('attack-select').value;
         const scenario = scenarios[attackKey];
         
-        logToConsole(`⚡ Starte Angriffsszenario: <strong>${scenario.name}</strong>...`, 'info');
+        logToConsole(`⚡ Starte Multi-Vektor-Simulation: <strong>${scenario.name}</strong>...`, 'warn');
 
-        // Status aller Checkboxen holen
         const srcStatus = {
             'src-edr': document.getElementById('src-edr').checked,
+            'src-ndr': document.getElementById('src-ndr').checked,
             'src-fw': document.getElementById('src-fw').checked,
             'src-ad': document.getElementById('src-ad').checked,
-            'src-cloud': document.getElementById('src-cloud').checked,
-            'src-ids': document.getElementById('src-ids').checked,
-            'src-honey': document.getElementById('src-honey').checked
+            'src-cloud': document.getElementById('src-cloud').checked
         };
 
         scenario.steps.forEach(step => {
@@ -365,47 +446,41 @@
                 const isSourceEnabled = srcStatus[step.src];
                 if (isSourceEnabled) {
                     document.getElementById(step.node).classList.add('active-log');
-                    logToConsole(step.log, 'info');
+                    logToConsole(step.log, 'warn');
                     document.getElementById('arrow-to-siem').classList.add('active');
                     document.getElementById('node-siem').classList.add('processing');
-                    logToConsole(`[SIEM] Log von <em>${document.getElementById(step.node).innerText}</em> erfolgreich korreliert.`, 'success');
+                    logToConsole(`[SIEM Ingestion] Event von <strong>${document.getElementById(step.node).innerText}</strong> geladen.`, 'info');
                 } else {
-                    logToConsole(`⚠️ Event auf ${document.getElementById(step.node).innerText} generiert, aber Log-Quelle ist inaktiv! Blind Spot ausgenutzt.`, 'info');
+                    logToConsole(`[BLIND SPOT] Event auf ${document.getElementById(step.node).innerText} generiert, aber Logquelle inaktiv!`, 'info');
                 }
             }, step.time);
         });
 
-        // Finale SOC Auswertung
         setTimeout(() => {
             const isDetected = scenario.detectCondition(srcStatus);
             const socNode = document.getElementById('node-soc');
-            const expBox = document.getElementById('explanation-box');
-            const expTitle = document.getElementById('exp-title');
-            const expText = document.getElementById('exp-text');
+            const successBox = document.getElementById('exp-success-box');
+            const failBox = document.getElementById('exp-fail-box');
 
             document.getElementById('arrow-to-soc').classList.add('active');
-            expBox.style.display = 'block';
+            successBox.style.display = 'block';
+            failBox.style.display = 'block';
 
             if (isDetected) {
-                socNode.classList.add('triggered');
-                socNode.innerText = `🚨 ALARM: ${scenario.name} abgewehrt!`;
-                logToConsole(`🔥 [SOC ALARM] Incident Response Team wurde alarmiert! Angriff gestoppt.`, 'alert');
-                
-                expBox.style.borderColor = 'var(--success-green)';
-                expTitle.innerHTML = `🟢 SOC Analyse: Erfolgreiche Erkennung`;
-                expText.innerHTML = scenario.whySuccess;
+                socNode.className = 'node soc-alert triggered';
+                socNode.innerText = `🚨 INCIDENT TRIGGERED: ${scenario.name}`;
+                logToConsole(`🔥 [SOC ALARM] SIEM Korrelationsregel hat gegriffen! Vorfall wird eskaliert.`, 'alert');
+                document.getElementById('exp-success-text').innerHTML = scenario.whySuccess;
+                document.getElementById('exp-fail-text').innerHTML = "<span style='color:var(--text-muted);'>Die Telemetrie war ausreichend, um den Angreifer zu entlarven.</span>";
             } else {
-                socNode.classList.add('missed');
-                socNode.innerText = `💀 UNBEMERKT: System kompromittiert!`;
-                logToConsole(`❌ [SECURITY BREACH] Der Angriff war erfolgreich. Keine SIEM-Regel hat angeschlagen.`, 'alert');
-                
-                expBox.style.borderColor = 'var(--error-red)';
-                expTitle.innerHTML = `🔴 SOC Analyse: Sicherheitslücke (Blind Spot)`;
-                expText.innerHTML = scenario.whyFail;
+                socNode.className = 'node soc-alert missed';
+                socNode.innerText = `💀 INTRUSION SUCCESSFUL: SOC blieb dunkel`;
+                logToConsole(`❌ [SECURITY BREACH] Die Angriffs-Kette konnte nicht korreliert werden.`, 'alert');
+                document.getElementById('exp-success-text').innerHTML = "<span style='color:var(--text-muted);'>Die Alarmierung schlug fehl, da essenzielle Puzzleteile im SIEM fehlten.</span>";
+                document.getElementById('exp-fail-text').innerHTML = scenario.whyFail;
             }
         }, 1800);
     }
 </script>
-
 </body>
 </html>
