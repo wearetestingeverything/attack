@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOC Attack & SIEM Simulator</title>
+    <title>Advanced SOC & SIEM Simulator</title>
     <style>
         :root {
             --bg-color: #0d1117;
@@ -14,6 +14,7 @@
             --success-green: #2ea44f;
             --error-red: #da3633;
             --warning-orange: #d29922;
+            --purple: #bc8cff;
         }
 
         body {
@@ -60,11 +61,18 @@
             color: #fff;
         }
 
-        /* Checkbox & Button Styles */
-        .source-option, .attack-option {
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
+        .source-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .source-option {
+            background: #21262d;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
 
         label { cursor: pointer; display: flex; align-items: center; width: 100%; }
@@ -94,28 +102,31 @@
 
         button:hover { background-color: #1f6feb; }
 
-        /* Grafische Simulations-Pipeline */
+        /* Pipeline Visualisierung */
         .pipeline {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             margin-top: 10px;
         }
 
         .node-row {
             display: flex;
             justify-content: space-around;
+            gap: 10px;
             align-items: center;
-            position: relative;
+            flex-wrap: wrap;
         }
 
         .node {
             background: #21262d;
             border: 2px solid var(--border-color);
-            padding: 15px 20px;
-            border-radius: 8px;
+            padding: 10px 15px;
+            border-radius: 6px;
             text-align: center;
-            min-width: 120px;
+            flex: 1;
+            min-width: 100px;
+            font-size: 0.85rem;
             font-weight: bold;
             transition: all 0.3s ease;
         }
@@ -126,13 +137,13 @@
             background: #2d2415;
         }
 
-        .node.siem { min-width: 80%; }
+        .node.siem { min-width: 90%; padding: 15px; }
         .node.siem.processing {
             border-color: var(--accent-blue);
             box-shadow: 0 0 15px rgba(88, 166, 255, 0.6);
         }
 
-        .node.soc-alert { min-width: 80%; }
+        .node.soc-alert { min-width: 90%; padding: 15px; }
         .node.soc-alert.triggered {
             border-color: var(--error-red);
             background: #3c1e1e;
@@ -143,7 +154,7 @@
             border-color: var(--error-red);
             background: #21262d;
             color: var(--error-red);
-            opacity: 0.6;
+            opacity: 0.7;
         }
 
         @keyframes pulse {
@@ -152,126 +163,162 @@
             100% { box-shadow: 0 0 0 0 rgba(218, 54, 51, 0); }
         }
 
-        .arrow {
-            text-align: center;
-            font-size: 24px;
-            color: var(--border-color);
-            transition: color 0.3s;
-        }
+        .arrow { text-align: center; font-size: 20px; color: var(--border-color); transition: color 0.3s; }
         .arrow.active { color: var(--accent-blue); }
 
-        /* Log Output Panel */
         .log-console {
             background-color: #05070a;
             border: 1px solid var(--border-color);
             font-family: 'Courier New', Courier, monospace;
-            padding: 15px;
+            padding: 12px;
             border-radius: 6px;
-            height: 180px;
+            height: 140px;
             overflow-y: auto;
-            margin-top: 20px;
-            font-size: 0.9rem;
+            margin-top: 15px;
+            font-size: 0.85rem;
         }
 
-        .log-entry { margin-bottom: 5px; line-height: 1.4; }
+        .log-entry { margin-bottom: 4px; }
         .log-info { color: #8b949e; }
         .log-alert { color: #ff7b72; font-weight: bold; }
         .log-success { color: #7ee787; }
+
+        /* Erklärungskasten unten */
+        .explanation-panel {
+            grid-column: span 2;
+            background: #1f242c;
+            border: 1px solid var(--accent-blue);
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        .explanation-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>SOC & SIEM Attack Simulator</h1>
-        <p>Interaktive Demonstration: Von der Log-Quelle bis zur Alarmierung im Security Operations Center</p>
+        <h1>Advanced SOC & SIEM Simulator</h1>
+        <p>Simuliere Cyber-Angriffe und verstehe die Sichtbarkeit (Visibility) deines Security Operations Centers</p>
     </header>
 
     <div class="dashboard-grid">
+        <!-- LINKS: Controls -->
         <div class="panel">
-            <h2>1. Aktive Log-Quellen im SIEM</h2>
-            <div class="source-option">
-                <label><input type="checkbox" id="src-edr" checked> Endpoint Detection & Response (EDR)</label>
-            </div>
-            <div class="source-option">
-                <label><input type="checkbox" id="src-fw" checked> Next-Gen Firewall (NGFW)</label>
-            </div>
-            <div class="source-option">
-                <label><input type="checkbox" id="src-ad"> Active Directory / Domain Controller</label>
-            </div>
-            <div class="source-option">
-                <label><input type="checkbox" id="src-cloud"> Cloud Audit Logs (O365 / AWS)</label>
+            <h2>1. Log-Quellen im SIEM</h2>
+            <div class="source-grid">
+                <div class="source-option"><label><input type="checkbox" id="src-edr" checked> Endpoint (EDR)</label></div>
+                <div class="source-option"><label><input type="checkbox" id="src-fw" checked> Firewall (NGFW)</label></div>
+                <div class="source-option"><label><input type="checkbox" id="src-ad"> Active Directory</label></div>
+                <div class="source-option"><label><input type="checkbox" id="src-cloud"> Cloud Logs</label></div>
+                <div class="source-option"><label><input type="checkbox" id="src-ids"> Network IDS/IPS</label></div>
+                <div class="source-option"><label><input type="checkbox" id="src-honey"> Honeypot</label></div>
             </div>
 
-            <h2 style="margin-top: 25px;">2. Angriffsszenario wählen</h2>
+            <h2>2. Angriffsmethode</h2>
             <select id="attack-select">
-                <option value="ransomware">Ransomware-Infektion auf Client</option>
-                <option value="bruteforce">Password Spraying gegen Cloud-Tenant</option>
-                <option value="exfiltration">Daten-Exfiltration über DNS</option>
+                <option value="ransomware">Ransomware & Lateral Movement</option>
+                <option value="bruteforce">Password Spraying (Cloud)</option>
+                <option value="exfiltration">DNS Data Exfiltration</option>
+                <option value="sqli">SQL Injection auf Webserver</option>
+                <option value="insider">Insider-Bedrohung (Datenklau via Admin)</option>
             </select>
 
-            <button onclick="runSimulation()">Angriff simulieren</button>
+            <button onclick="runSimulation()">Angriff starten</button>
         </div>
 
+        <!-- RECHTS: Visualisierung -->
         <div class="panel">
             <h2>3. Live-Pipeline Visualisierung</h2>
-            
             <div class="pipeline">
                 <div class="node-row">
                     <div class="node" id="node-edr">EDR</div>
                     <div class="node" id="node-fw">Firewall</div>
                     <div class="node" id="node-ad">Active Directory</div>
                     <div class="node" id="node-cloud">Cloud Logs</div>
+                    <div class="node" id="node-ids">IDS/IPS</div>
+                    <div class="node" id="node-honey">Honeypot</div>
                 </div>
 
                 <div class="arrow" id="arrow-to-siem">▼</div>
-
-                <div class="node-row">
-                    <div class="node siem" id="node-siem">Zentrales SIEM (Correlation Engine)</div>
-                </div>
-
+                <div class="node-row"><div class="node siem" id="node-siem">SIEM Correlation Engine</div></div>
                 <div class="arrow" id="arrow-to-soc">▼</div>
-
-                <div class="node-row">
-                    <div class="node soc-alert" id="node-soc">SOC Analyst Dashboard (Kein Alarm)</div>
-                </div>
+                <div class="node-row"><div class="node soc-alert" id="node-soc">SOC Analyst Dashboard (Bereit)</div></div>
             </div>
 
-            <h2 style="margin-top: 30px;">4. SIEM & SOC Log-Stream</h2>
+            <h2>4. Log-Stream</h2>
             <div class="log-console" id="console">
-                <div class="log-entry log-info">[SYSTEM] Simulator bereit. Wählen Sie Log-Quellen und starten Sie einen Angriff.</div>
+                <div class="log-entry log-info">[SYSTEM] Simulator bereit. Wählen Sie Logquellen und starten Sie den Angriff.</div>
             </div>
+        </div>
+
+        <!-- UNTEN: Dynamische Erklärung -->
+        <div class="explanation-panel" id="explanation-box">
+            <div class="explanation-title" id="exp-title"></div>
+            <p id="exp-text" style="line-height: 1.6; margin: 0;"></p>
         </div>
     </div>
 </div>
 
 <script>
-    // Definition der Angriffe und der dafür benötigten Log-Quellen
     const scenarios = {
         ransomware: {
-            name: "Ransomware-Infektion",
-            requiredSources: ["src-edr", "src-ad"],
+            name: "Ransomware & Lateral Movement",
             steps: [
-                { time: 500,  log: "WARN - EDR: Ungewöhnlicher Prozess 'vssadmin.exe delete shadows' auf Host-01 gestartet.", node: "node-edr" },
-                { time: 1200, log: "WARN - AD: Massenhafte Kerberos-Ticket-Anfragen von Host-01 (Lateral Movement Verdacht).", node: "node-ad" }
+                { time: 400, log: "WARN - EDR: Prozess 'vssadmin.exe delete shadows' (Schattenkopien löschen) blockiert.", node: "node-edr", src: "src-edr" },
+                { time: 1000, log: "WARN - AD: Massenhafte Kerberos-Anfragen (Pre-Authentication Failures) von Host-01.", node: "node-ad", src: "src-ad" }
             ],
-            successRule: "Wenn EDR ODER Active Directory aktiv sind, schlägt die Korrelation an."
+            detectCondition: (src) => src['src-edr'] || src['src-ad'],
+            whySuccess: "<strong>Erkannt!</strong> Das EDR-System schlägt sofort Alarm, wenn Ransomware versucht, Backups zu löschen. Selbst wenn der Endpoint offline wäre, würde das Active Directory die anschließenden lateralen Bewegungen (Kerberos-Brute-Force) im Netzwerk sichtbar machen.",
+            whyFail: "<strong>Blind Spot!</strong> Da weder EDR auf den Clients installiert ist, noch die Active-Directory-Logs an das SIEM übertragen werden, verschlüsselt die Ransomware das gesamte Netzwerk, ohne dass im SOC eine einzige Warnung eingeht."
         },
         bruteforce: {
-            name: "Password Spraying (Cloud)",
-            requiredSources: ["src-cloud"],
+            name: "Password Spraying (Cloud-Infrastruktur)",
             steps: [
-                { time: 600,  log: "WARN - Cloud: 450 fehlgeschlagene Logins aus 12 verschiedenen Ländern innerhalb von 2 Minuten.", node: "node-cloud" }
+                { time: 500, log: "WARN - Cloud: 500 fehlgeschlagene Logins aus dem TOR-Netzwerk auf 50 verschiedenen User-Konten.", node: "node-cloud", src: "src-cloud" }
             ],
-            successRule: "Benötigt Cloud Audit Logs zur Erkennung."
+            detectCondition: (src) => src['src-cloud'],
+            whySuccess: "<strong>Erkannt!</strong> Die Cloud-Audit-Logs liefern globale Authentifizierungsdaten. Das SIEM korreliert die schiere Masse an Fehlversuchen über verschiedene Accounts hinweg und erkennt das 'Spraying'-Muster.",
+            whyFail: "<strong>Blind Spot!</strong> Ohne Anbindung der Cloud-Logs (z.B. Entra ID / AWS CloudTrail) an das SIEM sieht das SOC diesen Angriff überhaupt nicht. Der Angreifer errät schließlich ein Passwort und ist unbemerkt in der Cloud."
         },
         exfiltration: {
-            name: "Daten-Exfiltration über DNS",
-            requiredSources: ["src-fw"],
+            name: "DNS Data Exfiltration",
             steps: [
-                { time: 500,  log: "WARN - Firewall: 5000+ DNS-Anfragen an verdächtige TLD (.xyz) mit Base64-kodierten Subdomains.", node: "node-fw" }
+                { time: 500, log: "WARN - Firewall: Ungewöhnlich hohes DNS-Verkehrsvolumen zu unbekannter Domain (*.xyz).", node: "node-fw", src: "src-fw" },
+                { time: 1000, log: "WARN - IDS/IPS: Anomalie erkannt - DNS-Pakete enthalten verschlüsselte payloads.", node: "node-ids", src: "src-ids" }
             ],
-            successRule: "Benötigt Next-Gen Firewall Logs zur Erkennung."
+            detectCondition: (src) => src['src-fw'] && src['src-ids'],
+            whySuccess: "<strong>Erkannt!</strong> Erst die Kombination aus Firewall-Verkehrsdaten (Volumen) und Deep Packet Inspection des IDS/IPS (Inhaltsanalyse der DNS-Abfragen) bestätigt, dass hier sensible Firmendaten als DNS-Anfragen getarnt nach draußen geschmuggelt werden.",
+            whyFail: "<strong>Blind Spot!</strong> Wenn nicht <em>beide</em> Quellen (Firewall und IDS) aktiv sind, reicht die Korrelation oft nicht aus. Reine Firewall-Logs zeigen nur 'normalen' DNS-Traffic (Port 53) – der Datendiebstahl bleibt unerkannt."
+        },
+        sqli: {
+            name: "SQL Injection (Angriff auf Webanwendung)",
+            steps: [
+                { time: 400, log: "WARN - IDS/IPS: Bekanntes Exploit-Muster 'UNION SELECT' in HTTP-POST-Request blockiert.", node: "node-ids", src: "src-ids" },
+                { time: 1000, log: "WARN - Honeypot: Angreifer scannt das interne Netz und greift Fake-Datenbank an.", node: "node-honey", src: "src-honey" }
+            ],
+            detectCondition: (src) => src['src-ids'] || src['src-honey'],
+            whySuccess: "<strong>Erkannt!</strong> Das IDS/IPS erkennt die typische SQL-Syntax im Netzwerkstrom. Falls der Angreifer bereits im Netz ist, schnappt die Falle zu: Der Honeypot (ein absichtlich verwundbarer Fake-Server) schlägt sofort Alarm, da reguläre Mitarbeiter diesen Server niemals kontaktieren würden.",
+            whyFail: "<strong>Blind Spot!</strong> Ohne Netzwerk-IDS fliegt der SQL-Angriff unter dem Radar. Gibt es zudem keinen Honeypot, merkt das SOC erst, dass die Datenbank kompromittiert wurde, wenn die Daten im Darknet auftauchen."
+        },
+        insider: {
+            name: "Insider-Bedrohung (Bösartiger Administrator)",
+            steps: [
+                { time: 400, log: "WARN - AD: Admin-Konto greift nachts um 03:00 Uhr auf sensible HR-Dateifreigaben zu.", node: "node-ad", src: "src-ad" },
+                { time: 1000, log: "WARN - EDR: Massiver Download von Daten auf einen unverschlüsselten USB-Stick.", node: "node-edr", src: "src-edr" }
+            ],
+            detectCondition: (src) => src['src-ad'] && src['src-edr'],
+            whySuccess: "<strong>Erkannt!</strong> Ein interner Angreifer hat valide Rechte. Nur die Korrelation aus abnormaler Verhaltenszeit (AD-Logs) und der physischen Aktion des Datenabzugs (EDR/DLP-Log) lässt im SIEM die Alarmglocken schrillen.",
+            whyFail: "<strong>Blind Spot!</strong> Da der Insider legitime Admin-Rechte besitzt, löst er keine typischen Malware-Alarme aus. Fehlen AD- oder EDR-Logs zur Verhaltensanalyse, spaziert der Mitarbeiter ungehindert mit den Firmengeheimnissen aus der Tür."
         }
     };
 
@@ -280,22 +327,19 @@
         const timestamp = new Date().toLocaleTimeString();
         const entry = document.createElement('div');
         entry.className = `log-entry log-${type}`;
-        entry.innerText = `[${timestamp}] ${text}`;
+        entry.innerHTML = `[${timestamp}] ${text}`;
         consoleEl.appendChild(entry);
         consoleEl.scrollTop = consoleEl.scrollHeight;
     }
 
     function resetPipeline() {
-        // Alle visuellen Klassen zurücksetzen
         document.querySelectorAll('.node').forEach(n => {
             n.className = 'node';
             if(n.id === 'node-siem') n.classList.add('siem');
-            if(n.id === 'node-soc') {
-                n.classList.add('soc-alert');
-                n.innerText = "SOC Analyst Dashboard (Bereit)";
-            }
+            if(n.id === 'node-soc') { n.classList.add('soc-alert'); n.innerText = "SOC Analyst Dashboard (Warte...)"; }
         });
         document.querySelectorAll('.arrow').forEach(a => a.classList.remove('active'));
+        document.getElementById('explanation-box').style.display = 'none';
     }
 
     function runSimulation() {
@@ -304,52 +348,62 @@
         const attackKey = document.getElementById('attack-select').value;
         const scenario = scenarios[attackKey];
         
-        logToConsole(`⚡ Starte Angriffsszenario: ${scenario.name}...`, 'info');
+        logToConsole(`⚡ Starte Angriffsszenario: <strong>${scenario.name}</strong>...`, 'info');
 
-        let alertTriggered = false;
+        // Status aller Checkboxen holen
+        const srcStatus = {
+            'src-edr': document.getElementById('src-edr').checked,
+            'src-fw': document.getElementById('src-fw').checked,
+            'src-ad': document.getElementById('src-ad').checked,
+            'src-cloud': document.getElementById('src-cloud').checked,
+            'src-ids': document.getElementById('src-ids').checked,
+            'src-honey': document.getElementById('src-honey').checked
+        };
 
-        // Simulierte Pipeline-Schritte durchgehen
         scenario.steps.forEach(step => {
             setTimeout(() => {
-                // Prüfen, ob die Log-Quelle vom User im UI aktiviert wurde
-                const sourceCheckboxId = step.node.replace('node-', 'src-');
-                const isSourceEnabled = document.getElementById(sourceCheckboxId).checked;
-
+                const isSourceEnabled = srcStatus[step.src];
                 if (isSourceEnabled) {
-                    // Log-Quelle schlägt grafisch an
                     document.getElementById(step.node).classList.add('active-log');
                     logToConsole(step.log, 'info');
-                    
-                    // SIEM erhält das Log
                     document.getElementById('arrow-to-siem').classList.add('active');
                     document.getElementById('node-siem').classList.add('processing');
-                    logToConsole(`[SIEM] Empfange Log von ${document.getElementById(step.node).innerText}.`, 'success');
-                    
-                    // Da zumindest eine wichtige Quelle da war, merken wir uns, dass der Alarm möglich ist
-                    if (scenario.requiredSources.includes(sourceCheckboxId)) {
-                        alertTriggered = true;
-                    }
+                    logToConsole(`[SIEM] Log von <em>${document.getElementById(step.node).innerText}</em> erfolgreich korreliert.`, 'success');
                 } else {
-                    logToConsole(`⚠️ Event auf ${document.getElementById(step.node).innerText} generiert, aber LOG-QUELLE NICHT AKTIVIERT! SIEM sieht nichts.`, 'info');
+                    logToConsole(`⚠️ Event auf ${document.getElementById(step.node).innerText} generiert, aber Log-Quelle ist inaktiv! Blind Spot ausgenutzt.`, 'info');
                 }
             }, step.time);
         });
 
-        // Finale Auswertung im SOC nach Ablauf der Logs
+        // Finale SOC Auswertung
         setTimeout(() => {
-            if (alertTriggered) {
-                document.getElementById('arrow-to-soc').classList.add('active');
-                const socNode = document.getElementById('node-soc');
+            const isDetected = scenario.detectCondition(srcStatus);
+            const socNode = document.getElementById('node-soc');
+            const expBox = document.getElementById('explanation-box');
+            const expTitle = document.getElementById('exp-title');
+            const expText = document.getElementById('exp-text');
+
+            document.getElementById('arrow-to-soc').classList.add('active');
+            expBox.style.display = 'block';
+
+            if (isDetected) {
                 socNode.classList.add('triggered');
-                socNode.innerText = `🚨 ALARM: ${scenario.name} erkannt!`;
-                logToConsole(`🔥 [SOC ALARM] Korrelationsregel gegriffen! Analyst leitet Incident Response ein.`, 'alert');
+                socNode.innerText = `🚨 ALARM: ${scenario.name} abgewehrt!`;
+                logToConsole(`🔥 [SOC ALARM] Incident Response Team wurde alarmiert! Angriff gestoppt.`, 'alert');
+                
+                expBox.style.borderColor = 'var(--success-green)';
+                expTitle.innerHTML = `🟢 SOC Analyse: Erfolgreiche Erkennung`;
+                expText.innerHTML = scenario.whySuccess;
             } else {
-                const socNode = document.getElementById('node-soc');
                 socNode.classList.add('missed');
-                socNode.innerText = `💀 BLIND SPOT: Angriff unbemerkt!`;
-                logToConsole(`❌ [SECURITY BREACH] Der Angriff war erfolgreich, da die notwendigen Log-Quellen im SIEM nicht angebunden waren!`, 'alert');
+                socNode.innerText = `💀 UNBEMERKT: System kompromittiert!`;
+                logToConsole(`❌ [SECURITY BREACH] Der Angriff war erfolgreich. Keine SIEM-Regel hat angeschlagen.`, 'alert');
+                
+                expBox.style.borderColor = 'var(--error-red)';
+                expTitle.innerHTML = `🔴 SOC Analyse: Sicherheitslücke (Blind Spot)`;
+                expText.innerHTML = scenario.whyFail;
             }
-        }, 2200);
+        }, 1800);
     }
 </script>
 
