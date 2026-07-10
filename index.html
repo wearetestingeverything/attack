@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIEM Correlation & SOC Analytics Architecture</title>
+    <title>XDR vs. Human SOC Simulator</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -17,6 +17,7 @@
             --success-green: #10b981;
             --error-red: #ef4444;
             --warning-orange: #f59e0b;
+            --purple: #a78bfa;
         }
 
         body {
@@ -47,17 +48,11 @@
             font-weight: 800;
         }
 
-        header p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-            margin: 0;
-        }
-
         .badge-expert {
             display: inline-block;
-            background-color: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: var(--accent-blue);
+            background-color: rgba(167, 139, 250, 0.1);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            color: var(--purple);
             padding: 4px 12px;
             border-radius: 9999px;
             font-size: 0.8rem;
@@ -68,7 +63,7 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 380px 1fr;
             gap: 25px;
         }
 
@@ -120,7 +115,7 @@
         input[type="checkbox"] {
             margin-right: 12px;
             transform: scale(1.2);
-            accent-color: var(--accent-blue);
+            accent-color: var(--purple);
         }
         
         select {
@@ -136,7 +131,7 @@
         button {
             width: 100%;
             padding: 14px;
-            background-color: var(--accent-blue);
+            background-color: var(--purple);
             color: white;
             border: none;
             border-radius: 6px;
@@ -144,7 +139,7 @@
             cursor: pointer;
         }
 
-        button:hover { background-color: var(--accent-blue-hover); }
+        button:hover { background-color: #8b5cf6; }
 
         .pipeline {
             display: flex;
@@ -203,6 +198,11 @@
             color: #fca5a5;
             animation: pulse 2s infinite;
         }
+        .node.soc-alert.human-win {
+            border-color: var(--success-green);
+            background: rgba(16, 185, 129, 0.15);
+            color: #a7f3d0;
+        }
         .node.soc-alert.missed {
             border-color: var(--error-red);
             background: rgba(31, 41, 55, 0.4);
@@ -211,7 +211,7 @@
         }
 
         @keyframes pulse {
-            0 { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
             70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
             100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
         }
@@ -274,19 +274,20 @@
 
         .arch-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
         }
 
         .arch-card {
             background: rgba(17, 24, 39, 0.5);
             padding: 20px;
             border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.02);
         }
 
         .arch-card h4 {
             margin-top: 0;
-            color: var(--accent-blue);
+            color: var(--purple);
             font-size: 1.1rem;
             margin-bottom: 10px;
         }
@@ -296,74 +297,75 @@
 
 <div class="container">
     <header>
-        <span class="badge-expert">Enterprise Cyber Defense Framework</span>
-        <h1>SIEM Correlation & SOC Analytics Architecture</h1>
-        <p>Interaktive Demonstration: Warum moderne Angriffe nur über die Korrelation im SIEM entlarvt werden können</p>
+        <span class="badge-expert">Advanced Security Architecture</span>
+        <h1>EDR vs. XDR vs. Human SOC Intelligence</h1>
+        <p>Interaktives Dashboard: Warum Technologie allein geblendet wird und der Mensch im SOC den Unterschied macht</p>
     </header>
 
     <div class="dashboard-grid">
         <div class="panel">
-            <div class="panel-header"><h2>1. Telemetrie & Log-Quellen</h2></div>
+            <div class="panel-header"><h2>1. Sicherheits-Infrastruktur</h2></div>
             <div class="panel-body">
                 <div class="source-grid">
-                    <div class="source-option"><label><input type="checkbox" id="src-edr" checked> Endpoint Detection (EDR)</label></div>
+                    <div class="source-option"><label><input type="checkbox" id="src-edr"> Silo 1: Legacy EDR (Nur Endpoint)</label></div>
+                    <div class="source-option"><label><input type="checkbox" id="src-xdr" checked> Integrierte XDR-Plattform</label></div>
                     <div class="source-option"><label><input type="checkbox" id="src-ndr" checked> Network Detection (NDR)</label></div>
-                    <div class="source-option"><label><input type="checkbox" id="src-fw"> Next-Gen Firewall (NGFW)</label></div>
-                    <div class="source-option"><label><input type="checkbox" id="src-ad"> Active Directory (AD)</label></div>
-                    <div class="source-option"><label><input type="checkbox" id="src-cloud"> Cloud Infrastructure Logs</label></div>
+                    <div class="source-option"><label><input type="checkbox" id="src-ad"> Active Directory Logs</label></div>
                 </div>
                 <select id="attack-select">
-                    <option value="apt_silent">Advanced Persistent Threat (APT) - Der verdeckte Datendiebstahl</option>
-                    <option value="ransomware_lateral">Ransomware-Deployment & DC-Übernahme</option>
-                    <option value="cloud_compromise">Credential Stuffing mit Cloud-API-Exfiltration</option>
+                    <option value="silo_fail">Warum EDR alleine versagt (Verschlüsselung via Netzwerklaufwerk)</option>
+                    <option value="living_off_land">Living-off-the-Land (Wo der Mensch die XDR-KI schlägt!)</option>
                 </select>
                 <button onclick="runSimulation()">Szenario ausführen</button>
             </div>
         </div>
 
         <div class="panel">
-            <div class="panel-header"><h2>2. Cross-Data-Source Pipeline</h2></div>
+            <div class="panel-header"><h2>2. Telemetrie & Response-Kette</h2></div>
             <div class="panel-body">
                 <div class="pipeline">
                     <div class="node-row">
-                        <div class="node" id="node-edr">EDR</div>
-                        <div class="node" id="node-ndr">NDR</div>
-                        <div class="node" id="node-fw">Firewall</div>
-                        <div class="node" id="node-ad">Active Directory</div>
-                        <div class="node" id="node-cloud">Cloud Logs</div>
+                        <div class="node" id="node-edr">EDR Silo</div>
+                        <div class="node" id="node-xdr">XDR Core</div>
+                        <div class="node" id="node-ndr">NDR Telemetrie</div>
+                        <div class="node" id="node-ad">AD Domain Identity</div>
                     </div>
                     <div class="arrow" id="arrow-to-siem">▼</div>
-                    <div class="node-row"><div class="node siem" id="node-siem">SIEM Enterprise Correlation Engine</div></div>
+                    <div class="node-row"><div class="node siem" id="node-siem">SIEM Enterprise Correlation Platform</div></div>
                     <div class="arrow" id="arrow-to-soc">▼</div>
-                    <div class="node-row"><div class="node soc-alert" id="node-soc">SOC Command Center (Warten auf Ingestion...)</div></div>
+                    <div class="node-row"><div class="node soc-alert" id="node-soc">SOC Command Center (Warte...)</div></div>
                 </div>
                 <div class="log-console" id="console">
-                    <div class="log-entry">[SYSTEM] Telemetrie-Pipelines initialisiert. Wählen Sie ein Szenario aus.</div>
+                    <div class="log-entry">[SYSTEM] Analyse-Bereit. Wählen Sie ein Szenario aus, um die Grenzen der Technologie zu sehen.</div>
                 </div>
             </div>
         </div>
 
         <div class="analysis-section">
             <div class="explanation-panel" id="exp-success-box">
-                <div class="explanation-title" style="color: var(--success-green);">🟢 SIEM Korrelation erfolgreich</div>
+                <div class="explanation-title" id="success-title" style="color: var(--success-green);">🟢 Status</div>
                 <div id="exp-success-text"></div>
             </div>
             <div class="explanation-panel" id="exp-fail-box">
-                <div class="explanation-title" style="color: var(--error-red);">🔴 Taktischer Blind Spot / Nicht erkannt</div>
+                <div class="explanation-title" style="color: var(--error-red);">🔴 Detektions-Defizit</div>
                 <div id="exp-fail-text"></div>
             </div>
         </div>
 
         <div class="architecture-guide">
-            <h3 style="color:#fff; margin-top:0;">Strategischer Leitfaden: Warum das SOC & die SIEM-Korrelation unersetzbar sind</h3>
+            <h3 style="color:#fff; margin-top:0;">Strategischer Vergleich: Technologie-Grenzen & Menschlicher Mehrwert</h3>
             <div class="arch-grid">
                 <div class="arch-card">
-                    <h4>1. Das Problem isolierter Sicherheitslösungen (Silos)</h4>
-                    <p style="margin:0; font-size:0.95rem;">Ein EDR sieht nur den Endpoint. Ein NDR sieht nur den Netzwerkverkehr. Für sich allein genommen meldet jede Quelle im besten Fall ein "leicht anormales", aber unkritisches Rauschen. Erst die zentrale Korrelation im SIEM verknüpft diese isolierten Punkte zu einer bösartigen Kette (Kill Chain).</p>
+                    <h4>Warum EDR alleine blind ist</h4>
+                    <p style="margin:0; font-size:0.9rem; color:var(--text-color);">Ein EDR überwacht nur installierte Agenten auf Laptops/Servern. Greift ein Angreifer ungepatchte IoT-Geräte, Router oder Netzlaufwerke direkt über das Netzwerk an, sieht das EDR absolut nichts. Es agiert im Datensilo.</p>
                 </div>
                 <div class="arch-card">
-                    <h4>2. Die Ganzheitlichkeit des SOC (People, Process, Technology)</h4>
-                    <p style="margin:0; font-size:0.95rem;">Technologie allein stoppt keine intelligenten Angriffe. Das SOC kombiniert das SIEM mit menschlicher Intelligenz. Analysten validieren Alarme, jagen proaktiv nach Bedrohungen (Threat Hunting) und leiten im Ernstfall die sofortige Eindämmung (Incident Response) ein.</p>
+                    <h4>Was XDR leistet (und was nicht)</h4>
+                    <p style="margin:0; font-size:0.9rem; color:var(--text-color);">XDR bricht die Silos auf und korreliert Endpoint, Mail und Identity automatisiert per KI. <strong>Aber:</strong> XDR entscheidet regelbasiert. Wenn ein Angreifer sich exakt wie ein normaler Admin verhält, blockiert die XDR nicht, um den Betrieb nicht lahmzulegen.</p>
+                </div>
+                <div class="arch-card">
+                    <h4>Der Faktor Mensch (Das SOC)</h4>
+                    <p style="margin:0; font-size:0.9rem; color:var(--text-color);">Ein SOC-Analyst bringt <strong>Kontext</strong> mit. Er sieht die Anomalie im Verhalten (z.B. ungewöhnliche Uhrzeit oder untypische Befehlsreihenfolge eines Admins) und verifiziert den Vorfall durch direkten Kontakt. Menschen erkennen Intentionen, Software nur Muster.</p>
                 </div>
             </div>
         </div>
@@ -372,36 +374,26 @@
 
 <script>
     const scenarios = {
-        apt_silent: {
-            name: "Advanced Persistent Threat (APT) - Der verdeckte Datendiebstahl",
+        silo_fail: {
+            name: "Verschlüsselung via Netzlaufwerk (EDR-Silo-Versagen)",
             steps: [
-                { time: 300, log: "WARN - EDR: Lokaler Host führt legitimes Tool 'ntdsutil.exe' aus (Standard-Windows-Admin-Verhalten).", node: "node-edr", src: "src-edr" },
-                { time: 800, log: "WARN - NDR: Anomalie - Server überträgt 1.2 GB Daten über HTTPS an eine externe IP.", node: "node-ndr", src: "src-ndr" }
+                { time: 300, log: "INFO - EDR: Lokaler PC unauffällig. Keine schädlichen Prozesse lokal gestartet.", node: "node-edr", src: "src-edr" },
+                { time: 800, log: "WARN - NDR: Massenhafte SMB-Dateimodifikationen auf zentralem Storage-Server via IP-04.", node: "node-ndr", src: "src-ndr" }
             ],
-            detectCondition: (src) => src['src-edr'] && src['src-ndr'],
-            whySuccess: "<strong>Die Macht der Korrelation:</strong> Isoliert betrachtet ist 'ntdsutil.exe' ein normales Admin-Tool (EDR meldet nichts Kritisches). Auch ein verschlüsselter HTTPS-Datenabzug (NDR) kann ein normales Cloud-Backup sein. <strong>Das SIEM verbindet die Punkte:</strong> Wenn exakt der Host, der lokale Admin-Tools nutzt, kurz darauf gigantische Datenmengen ins Ausland funkt, schlägt die Korrelationsregel sofort Alarm.",
-            whyFail: "<strong>Fataler Blind Spot:</strong> Wenn dir EDR oder NDR fehlen, kollabiert die Erkennung. Ohne EDR sieht das SOC nur einen Datenabzug (vielleicht legitim). Ohne NDR sieht das SOC nur ein Admin-Tool. Der Angreifer kopiert unbemerkt deine gesamte Active-Directory-Datenbank aus dem Unternehmen."
+            detectCondition: (src) => src['src-ndr'],
+            whySuccess: "<strong>Erkannt durch NDR/XDR:</strong> Da ein EDR-Silo auf dem Storage-System keine Aktivitäten sieht (weil der Angriff remote über das Netzwerk erfolgt), rettet hier nur das **NDR** oder die **XDR** die Situation, indem sie den anormalen Traffic-Anstieg auf dem Netzwerkprotokoll (SMB) korreliert.",
+            whyFail: "<strong>Ganzheitlicher Schaden:</strong> Wenn das Unternehmen nur auf **EDR** gesetzt hat, bleibt das System stumm. Die Ransomware verschlüsselt das gesamte Netzlaufwerk von einem unüberwachten Device aus. Das EDR meldet fälschlicherweise: 'Alles grün!'"
         },
-        ransomware_lateral: {
-            name: "Ransomware-Deployment & DC-Übernahme",
+        living_off_land: {
+            name: "Living-off-the-Land (Die XDR-Täuschung)",
             steps: [
-                { time: 300, log: "WARN - Firewall: Portscan (Port 445/SMB) von einem internen HR-Client in Richtung Domain Controller.", node: "node-fw", src: "src-fw" },
-                { time: 700, log: "WARN - AD: Event ID 4625 - 80 fehlgeschlagene Logins innerhalb von 5 Sekunden.", node: "node-ad", src: "src-ad" },
-                { time: 1100, log: "WARN - EDR: Unbekannte Binärdatei versucht, den Volumenschattenkopie-Dienst zu manipulieren.", node: "node-edr", src: "src-edr" }
+                { time: 300, log: "INFO - XDR: Valider Login von Admin-Konto 'b.schmidt' via VPN. Keine Anomalie.", node: "node-xdr", src: "src-xdr" },
+                { time: 800, log: "WARN - AD: Admin-Konto exportiert AD-Datenbank via PowerShell (Standard-Wartungsbefehl).", node: "node-ad", src: "src-ad" }
             ],
-            detectCondition: (src) => src['src-edr'] || (src['src-ad'] && src['src-fw']),
-            whySuccess: "<strong>Erkannt:</strong> Entweder schlägt das EDR direkt auf dem betroffenen System an, weil die Ransomware-Aktivität (Löschen von Backups) blockiert wird, ODER das SIEM verknüpft den internen Portscan (Firewall) mit dem anschließenden Brute-Force-Angriff im Active Directory.",
-            whyFail: "<strong>Vollständige Kompromittierung:</strong> Ohne EDR läuft die Verschlüsselung lokal ungehindert an. Fehlen dann auch noch Firewall- und AD-Logs im SIEM, agiert das SOC vollkommen blind, während sich die Ransomware lateral auf alle Server ausbreitet."
-        },
-        cloud_compromise: {
-            name: "Credential Stuffing mit Cloud-API-Exfiltration",
-            steps: [
-                { time: 400, log: "WARN - Cloud Logs: Erfolgreicher API-Login aus ungewöhnlichem Land (Geografie-Anomalie).", node: "node-cloud", src: "src-cloud" },
-                { time: 900, log: "WARN - NDR: Plötzlicher Anstieg von verschlüsselten API-Aufrufen gegen SharePoint-Endpunkte.", node: "node-ndr", src: "src-ndr" }
-            ],
-            detectCondition: (src) => src['src-cloud'] && src['src-ndr'],
-            whySuccess: "<strong>Erkannt via Cross-Telemetry:</strong> Die Cloud-Infrastruktur meldet einen fernen Login. Das NDR-System stellt jedoch gleichzeitig fest, dass von diesem Benutzer massenhaft Daten über API-Schnittstellen gezogen werden. Das SIEM triggert sofort einen Critical Alert wegen 'Cloud Account Takeover'.",
-            whyFail: "<strong>Datenverlust in der Cloud:</strong> Ohne die Korrelation zwischen Cloud-Audit-Spuren und dem tatsächlichen Netzwerk-Durchsatz (NDR) bleibt der Account-Missbrauch unbemerkt. Der Angreifer saugt ungestört die Firmen-SharePoints leer."
+            detectCondition: (src) => src['src-xdr'] && src['src-ad'], // Technisch erfasst, aber automatisiert nicht blockiert
+            humanLogic: true, // Spezielles Flag für SOC Sieg
+            whySuccess: "<strong>Technologie versagt – Mensch gewinnt!</strong> Die XDR sieht nur legitime Admin-Aktionen und blockiert <strong>nicht</strong> automatisch, da ein Fehlalarm die IT lahmlegen würde. **Aber das SOC schlägt an:** Der Analyst bemerkt, dass 'b.schmidt' laut HR-Kalender aktuell im Urlaub ist. Ein kurzer Kontrollanruf bestätigt den Identitätsdiebstahl. Der Analyst sperrt den User manuell. Die menschliche Intuition hat den Datenabzug gestoppt!",
+            whyFail: "<strong>XDR-Blindheit durch Legalität:</strong> Ohne ein menschliches SOC läuft dieser Angriff zu 100% durch. Die XDR schließt das Ticket als 'legitime administrative Tätigkeit'. Der Angreifer verlässt das Netz mit allen Passwörtern."
         }
     };
 
@@ -419,7 +411,7 @@
         document.querySelectorAll('.node').forEach(n => {
             n.className = 'node';
             if(n.id === 'node-siem') n.classList.add('siem');
-            if(n.id === 'node-soc') { n.classList.add('soc-alert'); n.innerText = "SOC Analyst Dashboard (Warte...)"; }
+            if(n.id === 'node-soc') { n.classList.add('soc-alert'); n.innerText = "SOC Analyst Dashboard (Analysiere...)"; }
         });
         document.querySelectorAll('.arrow').forEach(a => a.classList.remove('active'));
         document.getElementById('exp-success-box').style.display = 'none';
@@ -431,14 +423,13 @@
         const attackKey = document.getElementById('attack-select').value;
         const scenario = scenarios[attackKey];
         
-        logToConsole(`⚡ Starte Multi-Vektor-Simulation: <strong>${scenario.name}</strong>...`, 'warn');
+        logToConsole(`⚡ Initiiere Bedrohung: <strong>${scenario.name}</strong>...`, 'warn');
 
         const srcStatus = {
             'src-edr': document.getElementById('src-edr').checked,
+            'src-xdr': document.getElementById('src-xdr').checked,
             'src-ndr': document.getElementById('src-ndr').checked,
-            'src-fw': document.getElementById('src-fw').checked,
-            'src-ad': document.getElementById('src-ad').checked,
-            'src-cloud': document.getElementById('src-cloud').checked
+            'src-ad': document.getElementById('src-ad').checked
         };
 
         scenario.steps.forEach(step => {
@@ -449,9 +440,8 @@
                     logToConsole(step.log, 'warn');
                     document.getElementById('arrow-to-siem').classList.add('active');
                     document.getElementById('node-siem').classList.add('processing');
-                    logToConsole(`[SIEM Ingestion] Event von <strong>${document.getElementById(step.node).innerText}</strong> geladen.`, 'info');
                 } else {
-                    logToConsole(`[BLIND SPOT] Event auf ${document.getElementById(step.node).innerText} generiert, aber Logquelle inaktiv!`, 'info');
+                    logToConsole(`[SILO LÜCKE] Telemetrie auf ${document.getElementById(step.node).innerText} vorhanden, aber mangels Sensorik nicht im SIEM/XDR erfasst.`, 'info');
                 }
             }, step.time);
         });
@@ -461,22 +451,35 @@
             const socNode = document.getElementById('node-soc');
             const successBox = document.getElementById('exp-success-box');
             const failBox = document.getElementById('exp-fail-box');
+            const successTitle = document.getElementById('success-title');
 
             document.getElementById('arrow-to-soc').classList.add('active');
             successBox.style.display = 'block';
             failBox.style.display = 'block';
 
             if (isDetected) {
-                socNode.className = 'node soc-alert triggered';
-                socNode.innerText = `🚨 INCIDENT TRIGGERED: ${scenario.name}`;
-                logToConsole(`🔥 [SOC ALARM] SIEM Korrelationsregel hat gegriffen! Vorfall wird eskaliert.`, 'alert');
-                document.getElementById('exp-success-text').innerHTML = scenario.whySuccess;
-                document.getElementById('exp-fail-text').innerHTML = "<span style='color:var(--text-muted);'>Die Telemetrie war ausreichend, um den Angreifer zu entlarven.</span>";
+                if (scenario.humanLogic) {
+                    // Szenario 2: Mensch triumphierte über reine Software
+                    socNode.className = 'node soc-alert human-win';
+                    socNode.innerText = `🟢 SOC HUMAN TRIUMPH: Angriff manuell vereitelt!`;
+                    logToConsole(`🏆 [MENSCHLICHE INTUITION] SOC-Analyst entlarvt Identitätsdiebstahl trotz legitimer Tools.`, 'success');
+                    successTitle.innerText = "🟢 SOC-Analyst schlägt XDR-Automatismus";
+                    document.getElementById('exp-success-text').innerHTML = scenario.whySuccess;
+                    document.getElementById('exp-fail-text').innerHTML = "<span style='color:var(--text-muted);'>Die XDR-Plattform allein hätte diesen legitimen Admin-Befehl durchgewinkt.</span>";
+                } else {
+                    // Szenario 1: Technische Erkennung via Cross-Telemetry
+                    socNode.className = 'node soc-alert triggered';
+                    socNode.innerText = `🚨 AUTOMATED ALERT: Angriff gestoppt`;
+                    logToConsole(`🔥 [SIEM MATCH] Cross-Silo-Telemetrie hat gegriffen.`, 'alert');
+                    successTitle.innerText = "🟢 Technische Korrelation erfolgreich";
+                    document.getElementById('exp-success-text').innerHTML = scenario.whySuccess;
+                    document.getElementById('exp-fail-text').innerHTML = "<span style='color:var(--text-muted);'>Die XDR/NDR-Schutzschicht war ausreichend.</span>";
+                }
             } else {
                 socNode.className = 'node soc-alert missed';
-                socNode.innerText = `💀 INTRUSION SUCCESSFUL: SOC blieb dunkel`;
-                logToConsole(`❌ [SECURITY BREACH] Die Angriffs-Kette konnte nicht korreliert werden.`, 'alert');
-                document.getElementById('exp-success-text').innerHTML = "<span style='color:var(--text-muted);'>Die Alarmierung schlug fehl, da essenzielle Puzzleteile im SIEM fehlten.</span>";
+                socNode.innerText = `💀 INTRUSION SUCCESSFUL: Blackout`;
+                logToConsole(`❌ [BREACH] Der Angriff lief ungesehen unter dem Radar durch.`, 'alert');
+                document.getElementById('exp-success-text').innerHTML = "<span style='color:var(--text-muted);'>Sicherheitssoftware blieb stumm.</span>";
                 document.getElementById('exp-fail-text').innerHTML = scenario.whyFail;
             }
         }, 1800);
