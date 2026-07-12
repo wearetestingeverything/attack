@@ -2,111 +2,77 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>🛡️ SOC-XDR Pro Simulation</title>
+    <title>SOC Exposure Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        body { background: #080c18; font-family: 'Inter', sans-serif; color: #e8edf5; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .grid-main { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: rgba(14, 22, 40, 0.7); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; }
-        .log-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; cursor: pointer; margin-bottom: 8px; transition: 0.3s; }
-        .log-item.active { border-color: #00b4ff; background: rgba(0, 180, 255, 0.1); }
-        .attack-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; cursor: pointer; color: white; width: 100%; text-align: left; margin-bottom: 10px; }
-        .attack-btn.selected { border-color: #f97316; background: rgba(249, 115, 22, 0.1); }
-        #siemResult { padding: 20px; border-radius: 15px; background: rgba(0,0,0,0.3); border-left: 5px solid #4a5568; }
-        .btn-primary { background: #00b4ff; border: none; padding: 15px 30px; border-radius: 50px; color: #000; font-weight: 800; cursor: pointer; width: 100%; margin-top: 10px; }
+        .glow { box-shadow: 0 0 15px rgba(0, 180, 255, 0.3); }
+        .cyber-bg { background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1>🛡️ SOC-XDR Pro Simulation</h1>
-        <div class="grid-main">
-            <div class="card">
-                <h3>📂 Logquellen</h3>
-                <div id="logContainer"></div>
-            </div>
-            <div class="card">
-                <h3>⚔️ Angriff wählen</h3>
-                <div id="attackContainer"></div>
-                <div id="siemResult">
-                    <div id="verdict">Wähle Angriff & Quellen</div>
-                    <div id="detail" style="font-size: 0.9rem; margin-top:10px;"></div>
-                </div>
-                <button class="btn-primary" onclick="runSimulation()">🚀 ANALYSE STARTEN</button>
-            </div>
+<body class="cyber-bg text-blue-100 min-h-screen p-8">
+
+<div class="max-w-4xl mx-auto">
+    <header class="mb-10 text-center">
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">SOC Maturity Simulator</h1>
+        <p class="text-slate-400">Wie sicher ist deine Infrastruktur wirklich?</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-4">
+            <h2 class="text-xl font-semibold border-b border-blue-900 pb-2">1. Infrastruktur-Audit</h2>
+            <div id="logOptions" class="grid grid-cols-2 gap-2"></div>
+        </div>
+
+        <div class="space-y-6">
+            <h2 class="text-xl font-semibold border-b border-blue-900 pb-2">2. Live Simulation</h2>
+            <button id="runSim" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-lg font-bold transition">Angriff starten</button>
+            <div id="result" class="p-4 rounded-xl border hidden"></div>
         </div>
     </div>
+</div>
 
-    <script>
-        const logSources = [
-            { id: 'fw', label: 'Firewall', desc: 'Netzwerkverkehr' },
-            { id: 'ad', label: 'Active Directory', desc: 'Logins' },
-            { id: 'endpoint', label: 'EDR / Endpoint', desc: 'Prozesse' },
-            { id: 'mail', label: 'Mail Gateway', desc: 'E-Mail' }
-        ];
+<script>
+const logs = [
+    {id: 'fw', name: 'Firewall'}, {id: 'ad', name: 'Active Dir'}, 
+    {id: 'edr', name: 'EDR/Endpoint'}, {id: 'mail', name: 'Mail Gateway'},
+    {id: 'vpn', name: 'VPN'}, {id: 'dns', name: 'DNS Logs'}
+];
 
-        const attacks = [
-            { 
-                id: 'phishing', label: 'Phishing', required: ['mail', 'ad', 'endpoint'],
-                desc: 'Phishing-Angriff mit Credential Theft.'
-            }
-        ];
+const attacks = [
+    {name: 'Ransomware', req: ['edr', 'fw', 'ad'], desc: 'Verschlüsselung der Fileserver.'},
+    {name: 'Data Exfiltration', req: ['fw', 'dns', 'proxy'], desc: 'Abfluss sensibler Daten via DNS Tunneling.'}
+];
 
-        let activeLogs = new Set();
-        let currentAttack = null;
+let selectedLogs = new Set();
 
-        // Init UI
-        function init() {
-            const lc = document.getElementById('logContainer');
-            logSources.forEach(l => {
-                const div = document.createElement('div');
-                div.className = 'log-item';
-                div.innerHTML = `<strong>${l.label}</strong><br>${l.desc}`;
-                div.onclick = () => {
-                    activeLogs.has(l.id) ? activeLogs.delete(l.id) : activeLogs.add(l.id);
-                    div.classList.toggle('active');
-                };
-                lc.appendChild(div);
-            });
+// UI Render
+const container = document.getElementById('logOptions');
+logs.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = "p-3 bg-slate-800 rounded border border-slate-700 hover:border-blue-500 transition";
+    btn.innerText = l.name;
+    btn.onclick = () => {
+        btn.classList.toggle('border-blue-500');
+        selectedLogs.has(l.id) ? selectedLogs.delete(l.id) : selectedLogs.add(l.id);
+    };
+    container.appendChild(btn);
+});
 
-            const ac = document.getElementById('attackContainer');
-            attacks.forEach(a => {
-                const btn = document.createElement('button');
-                btn.className = 'attack-btn';
-                btn.innerHTML = a.label;
-                btn.onclick = () => {
-                    currentAttack = a;
-                    document.querySelectorAll('.attack-btn').forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                };
-                ac.appendChild(btn);
-            });
-        }
-
-        function runSimulation() {
-            if(!currentAttack) return alert('Wähle einen Angriff!');
-            
-            const missing = currentAttack.required.filter(id => !activeLogs.has(id));
-            const vEl = document.getElementById('verdict');
-            const dEl = document.getElementById('detail');
-            const resEl = document.getElementById('siemResult');
-
-            if(missing.length === 0) {
-                vEl.innerHTML = "✅ ERKANNT";
-                dEl.innerHTML = "Alle Quellen aktiv. Das SOC kann den Angriff stoppen.";
-                resEl.style.borderLeftColor = "#4ade80";
-            } else if(missing.length < currentAttack.required.length) {
-                vEl.innerHTML = "⚠️ TEILWEISE ERKANNT";
-                dEl.innerHTML = "Fehlende Quellen: " + missing.join(', ');
-                resEl.style.borderLeftColor = "#fb923c";
-            } else {
-                vEl.innerHTML = "❌ BLIND SPOT";
-                dEl.innerHTML = "Angriff komplett unsichtbar!";
-                resEl.style.borderLeftColor = "#f87171";
-            }
-        }
-
-        init();
-    </script>
+document.getElementById('runSim').onclick = () => {
+    const res = document.getElementById('result');
+    res.classList.remove('hidden');
+    const atk = attacks[Math.floor(Math.random() * attacks.length)];
+    
+    const missing = atk.req.filter(r => !selectedLogs.has(r));
+    
+    if(missing.length === 0) {
+        res.className = "p-4 rounded-xl border border-green-500 bg-green-900/20";
+        res.innerHTML = `✅ <strong>Erkannt:</strong> ${atk.name} wurde durch ${atk.req.join(', ')} gestoppt.`;
+    } else {
+        res.className = "p-4 rounded-xl border border-red-500 bg-red-900/20";
+        res.innerHTML = `❌ <strong>Blind Spot:</strong> ${atk.name} erfolgreich. ${missing.join(', ')} fehlen im Monitoring!`;
+    }
+};
+</script>
 </body>
 </html>
