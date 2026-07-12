@@ -2,112 +2,105 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Cyber-Sim Pro | A1 Edition</title>
+    <title>Cyber Defense Sim | A1 Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #020617; color: #e2e8f0; font-family: sans-serif; }
-        .card-active { border-color: #3b82f6 !important; background: #1e3a8a !important; color: white !important; }
-        .attack-active { border-color: #f59e0b !important; background: #92400e !important; color: white !important; }
-        .gradient-text { background: linear-gradient(to right, #60a5fa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        body { background: #050505; color: #e2e8f0; }
+        .cyber-card { background: #0f172a; border: 1px solid #1e293b; transition: all 0.3s; }
+        .active-glow { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+        .alarm-bg { animation: flash-red 1s infinite; }
+        @keyframes flash-red { 0%, 100% { border-color: #ef4444; } 50% { border-color: #7f1d1d; } }
+        .success-bg { border-color: #22c55e; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
-<div class="max-w-7xl mx-auto">
-    <div class="text-center mb-10">
-        <h1 class="text-5xl font-black gradient-text uppercase tracking-tighter">Cyber-Sim Pro Enterprise</h1>
-        <p class="text-slate-400 mt-2">Sicherheitsanalyse für dein Unternehmen</p>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl">
-            <h2 class="font-bold mb-4 text-blue-300 uppercase text-xs tracking-widest">Infrastruktur & Logs</h2>
-            <div id="logGrid" class="grid grid-cols-2 gap-2"></div>
+<div class="max-w-6xl mx-auto">
+    <h1 class="text-4xl font-black text-white mb-8 text-center uppercase">SOC <span class="text-blue-500">EXPOSURE</span> SIMULATOR</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Quellen -->
+        <div class="space-y-4">
+            <h2 class="text-lg font-bold text-blue-400">1. Überwachungskameras aktivieren:</h2>
+            <div id="logGrid" class="grid grid-cols-2 gap-3"></div>
         </div>
 
-        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl">
-            <h2 class="font-bold mb-4 text-orange-400 uppercase text-xs tracking-widest">Angriffsszenario</h2>
-            <div id="attackGrid" class="grid grid-cols-1 gap-2"></div>
-        </div>
-
-        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl flex flex-col">
-            <h2 class="font-bold mb-4 text-green-400 uppercase text-xs tracking-widest">Live Analyse</h2>
-            <div id="simResult" class="flex-grow p-5 bg-black rounded-lg border border-slate-700 italic text-slate-400 text-sm">
-                Wähle Logquellen und einen Angriff aus...
+        <!-- Simulation -->
+        <div class="space-y-6">
+            <h2 class="text-lg font-bold text-orange-400">2. Angriff starten:</h2>
+            <div id="attackGrid" class="grid grid-cols-2 gap-3"></div>
+            
+            <div id="result" class="hidden p-6 rounded-2xl border-l-8 bg-slate-900 shadow-xl transition-all">
+                <div id="resultContent" class="text-sm leading-relaxed"></div>
             </div>
-            <button id="runBtn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold uppercase tracking-widest transition hover:scale-[1.02]">Simulieren</button>
-            <button id="copyBtn" class="hidden mt-2 w-full bg-slate-700 hover:bg-slate-600 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition">Bericht in Zwischenablage kopieren</button>
+            
+            <button id="runBtn" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold uppercase tracking-widest transition hover:scale-[1.02]">Bedrohung simulieren</button>
         </div>
     </div>
 </div>
 
 <script>
     const sources = [
-        { id: 'ad', name: 'Active Directory' }, { id: 'edr', name: 'EDR / Endpoint' },
-        { id: 'mail', name: 'Mail Gateway' }, { id: 'fw', name: 'Firewall' },
-        { id: 'vpn', name: 'VPN Gateway' }, { id: 'dns', name: 'DNS Security' },
-        { id: 'db', name: 'Datenbank Logs' }, { id: 'cloud', name: 'Cloud Activity' },
-        { id: 'proxy', name: 'Web Proxy' }, { id: 'ids', name: 'IDS / IPS' }
+        { id: 'ad', name: 'AD (Logins)', icon: 'fa-user-shield' },
+        { id: 'edr', name: 'EDR (Viren)', icon: 'fa-microchip' },
+        { id: 'dns', name: 'DNS (Netzwerk)', icon: 'fa-network-wired' },
+        { id: 'fw', name: 'Firewall', icon: 'fa-shield-halved' }
     ];
 
     const attacks = [
-        { name: 'Ransomware', req: ['edr', 'fw', 'ad'], desc: 'Ein Virus verschlüsselt deine Dateien.' },
-        { name: 'Datendiebstahl', req: ['fw', 'db', 'dns'], desc: 'Abfluss von Kundendaten nach extern.' },
-        { name: 'Phishing', req: ['mail', 'ad', 'proxy'], desc: 'Manipulation über gefälschte E-Mails.' }
+        { name: 'Datendiebstahl', req: ['fw', 'dns'], explanation: 'Hacker schleusen Daten über das DNS-Protokoll aus. Da du DNS-Logs nicht überwachst, blieb dieser "Tunnel" völlig unsichtbar.' },
+        { name: 'Ransomware', req: ['edr', 'fw'], explanation: 'Die Ransomware konnte sich unbemerkt im Netz verbreiten, weil der EDR-Scanner die Dateibewegungen nicht melden konnte.' }
     ];
 
-    let activeLogs = new Set();
-    let selectedAttack = null;
-    let lastReport = "";
+    let active = new Set();
+    let currentAttack = null;
 
+    // UI Aufbau
+    const logGrid = document.getElementById('logGrid');
     sources.forEach(s => {
         const btn = document.createElement('button');
-        btn.className = "p-3 bg-slate-800 border border-slate-700 rounded text-xs hover:border-blue-500 transition";
-        btn.innerText = s.name;
+        btn.className = "flex items-center gap-3 p-4 cyber-card rounded-xl hover:border-blue-500";
+        btn.innerHTML = `<i class="fa ${s.icon} text-blue-500"></i><span>${s.name}</span>`;
         btn.onclick = () => {
-            activeLogs.has(s.id) ? activeLogs.delete(s.id) : activeLogs.add(s.id);
-            btn.classList.toggle('card-active');
+            active.has(s.id) ? active.delete(s.id) : active.add(s.id);
+            btn.classList.toggle('active-glow');
         };
-        document.getElementById('logGrid').appendChild(btn);
+        logGrid.appendChild(btn);
     });
 
+    const attackGrid = document.getElementById('attackGrid');
     attacks.forEach(a => {
         const btn = document.createElement('button');
-        btn.className = "p-3 bg-slate-800 border border-slate-700 rounded text-sm hover:border-orange-500 transition";
+        btn.className = "p-4 cyber-card rounded-xl hover:border-orange-500";
         btn.innerText = a.name;
         btn.onclick = () => {
-            document.querySelectorAll('#attackGrid button').forEach(b => b.classList.remove('attack-active'));
-            selectedAttack = a;
-            btn.classList.add('attack-active');
+            document.querySelectorAll('#attackGrid button').forEach(b => b.classList.remove('bg-orange-900/50'));
+            currentAttack = a;
+            btn.classList.add('bg-orange-900/50', 'border-orange-500');
         };
-        document.getElementById('attackGrid').appendChild(btn);
+        attackGrid.appendChild(btn);
     });
 
-    document.getElementById('runBtn').onclick = async () => {
-        if(!selectedAttack) return alert('Wähle einen Angriff!');
-        const res = document.getElementById('simResult');
-        const copyBtn = document.getElementById('copyBtn');
+    document.getElementById('runBtn').onclick = () => {
+        if(!currentAttack) return alert('Wähle einen Angriff!');
+        const res = document.getElementById('result');
+        const content = document.getElementById('resultContent');
+        res.classList.remove('hidden', 'alarm-bg', 'success-bg');
         
-        res.innerHTML = "🔍 Scanne Umgebung...";
-        await new Promise(r => setTimeout(r, 1000));
+        const missing = currentAttack.req.filter(r => !active.has(r));
         
-        const missing = selectedAttack.req.filter(r => !activeLogs.has(r));
-        const date = new Date().toLocaleDateString('de-DE');
-
         if(missing.length === 0) {
-            lastReport = `SECURITY HEALTH REPORT (${date})\n------------------------------\nAngriff: ${selectedAttack.name}\nStatus: VOLLSTÄNDIG ABGEWEHRT\nErgebnis: Sicherheitssysteme haben den Angriff erfolgreich korreliert.`;
-            res.innerHTML = `<div class='text-green-400 font-bold text-lg'>✅ ABGEWEHRT</div><p class='mt-2'>Angriff erkannt und gestoppt.</p>`;
+            res.classList.add('success-bg');
+            content.innerHTML = `<h3 class='text-green-400 font-bold text-lg'>✅ Angriff abgewehrt!</h3><p class='mt-2'>Deine Sicherheits-Tools haben den Hacker sofort erkannt und blockiert.</p>`;
         } else {
-            lastReport = `SECURITY HEALTH REPORT (${date})\n------------------------------\nAngriff: ${selectedAttack.name}\nStatus: EINBRUCH ERFOLGREICH\nRisiko: Angriff konnte nicht erkannt werden.\nFehlende Quellen: ${missing.join(', ')}\nEmpfehlung: Implementierung der fehlenden Logquellen zur Schließung der Sicherheitslücke.`;
-            res.innerHTML = `<div class='text-red-500 font-bold text-lg'>❌ EINBRUCH</div><p class='mt-2'>Der Hacker war erfolgreich. Fehlend: <strong>${missing.join(', ')}</strong>.</p>`;
+            res.classList.add('alarm-bg');
+            content.innerHTML = `<h3 class='text-red-400 font-bold text-lg'>❌ Einbruch erfolgreich!</h3>
+                                <p class='mt-2 text-red-200'>Der Angreifer hatte freie Bahn.</p>
+                                <p class='mt-3 font-medium'>Warum? ${currentAttack.explanation}</p>`;
         }
-        copyBtn.classList.remove('hidden');
-    };
-
-    document.getElementById('copyBtn').onclick = () => {
-        navigator.clipboard.writeText(lastReport);
-        alert('Bericht in Zwischenablage kopiert!');
     };
 </script>
 </body>
 </html>
+
