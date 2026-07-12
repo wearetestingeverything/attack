@@ -2,92 +2,111 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOC Maturity Assessment</title>
+    <title>Cyber-Sim Pro | A1 Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: #020617; color: #e2e8f0; font-family: sans-serif; }
-        .cyber-grid { background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 40px 40px; }
-        .glitch-text { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .card-active { border-color: #3b82f6 !important; background: #1e3a8a !important; }
+        .card-active { border-color: #3b82f6 !important; background: #1e3a8a !important; color: white !important; }
+        .attack-active { border-color: #f59e0b !important; background: #92400e !important; color: white !important; }
+        .gradient-text { background: linear-gradient(to right, #60a5fa, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
-<body class="cyber-grid min-h-screen p-4 md:p-8">
+<body class="p-4 md:p-10">
 
-<div class="max-w-5xl mx-auto">
-    <header class="mb-10 text-center">
-        <h1 class="text-3xl md:text-5xl font-black text-blue-400 uppercase tracking-tighter">SOC Exposure Engine</h1>
-        <p class="text-slate-400 mt-2">Wie gut erkennt dein System einen Hacker-Angriff?</p>
-    </header>
+<div class="max-w-7xl mx-auto">
+    <div class="text-center mb-10">
+        <h1 class="text-5xl font-black gradient-text uppercase tracking-tighter">Cyber-Sim Pro Enterprise</h1>
+        <p class="text-slate-400 mt-2">Sicherheitsanalyse für dein Unternehmen</p>
+    </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- 1. Bereich: Logquellen -->
-        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
-            <h2 class="text-xl font-bold mb-4 border-b border-slate-700 pb-2">Welche Datenquellen hast du?</h2>
-            <p class="text-sm text-slate-400 mb-6">Wähle alle Systeme aus, die bei dir Log-Daten liefern:</p>
-            <div id="logGrid" class="grid grid-cols-2 gap-3"></div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl">
+            <h2 class="font-bold mb-4 text-blue-300 uppercase text-xs tracking-widest">Infrastruktur & Logs</h2>
+            <div id="logGrid" class="grid grid-cols-2 gap-2"></div>
         </div>
 
-        <!-- 2. Bereich: Simulation -->
-        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col">
-            <h2 class="text-xl font-bold mb-4">Live Simulation</h2>
-            <div id="simulationOutput" class="flex-grow p-4 bg-black/30 rounded-lg border border-slate-700 min-h-[200px]">
-                <p class="text-slate-500 italic">Klicke auf "Bedrohung simulieren", um den Test zu starten...</p>
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl">
+            <h2 class="font-bold mb-4 text-orange-400 uppercase text-xs tracking-widest">Angriffsszenario</h2>
+            <div id="attackGrid" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-2xl flex flex-col">
+            <h2 class="font-bold mb-4 text-green-400 uppercase text-xs tracking-widest">Live Analyse</h2>
+            <div id="simResult" class="flex-grow p-5 bg-black rounded-lg border border-slate-700 italic text-slate-400 text-sm">
+                Wähle Logquellen und einen Angriff aus...
             </div>
-            <button id="runBtn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg transition transform hover:scale-[1.02]">
-                BEDROHUNG SIMULIEREN
-            </button>
+            <button id="runBtn" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold uppercase tracking-widest transition hover:scale-[1.02]">Simulieren</button>
+            <button id="copyBtn" class="hidden mt-2 w-full bg-slate-700 hover:bg-slate-600 py-2 rounded-lg font-bold text-xs uppercase tracking-widest transition">Bericht in Zwischenablage kopieren</button>
         </div>
     </div>
 </div>
 
 <script>
-    const data = [
-        { id: 'ad', name: 'Active Directory', impact: 'Ohne diese Logs merkt das System nicht, wenn ein Einbrecher versucht, sich mit gestohlenen Passwörtern Zugriff auf deine Firma zu verschaffen.' },
-        { id: 'edr', name: 'EDR/Endpoint', impact: 'Ohne diese Daten bleibt ein Virus oder ein Einbrecher auf einem Computer für dich komplett unsichtbar.' },
-        { id: 'mail', name: 'Mail Gateway', impact: 'Die meisten Angriffe kommen per E-Mail. Ohne diese Daten wissen wir nicht, wie der Angreifer bei dir reingekommen ist.' },
-        { id: 'fw', name: 'Firewall', impact: 'Ohne diese Kontrolle siehst du nicht, ob deine Computer Daten an gefährliche Orte im Internet senden.' }
+    const sources = [
+        { id: 'ad', name: 'Active Directory' }, { id: 'edr', name: 'EDR / Endpoint' },
+        { id: 'mail', name: 'Mail Gateway' }, { id: 'fw', name: 'Firewall' },
+        { id: 'vpn', name: 'VPN Gateway' }, { id: 'dns', name: 'DNS Security' },
+        { id: 'db', name: 'Datenbank Logs' }, { id: 'cloud', name: 'Cloud Activity' },
+        { id: 'proxy', name: 'Web Proxy' }, { id: 'ids', name: 'IDS / IPS' }
     ];
 
-    const logGrid = document.getElementById('logGrid');
-    const simulationOutput = document.getElementById('simulationOutput');
-    let active = new Set();
+    const attacks = [
+        { name: 'Ransomware', req: ['edr', 'fw', 'ad'], desc: 'Ein Virus verschlüsselt deine Dateien.' },
+        { name: 'Datendiebstahl', req: ['fw', 'db', 'dns'], desc: 'Abfluss von Kundendaten nach extern.' },
+        { name: 'Phishing', req: ['mail', 'ad', 'proxy'], desc: 'Manipulation über gefälschte E-Mails.' }
+    ];
 
-    // Buttons erstellen
-    data.forEach(item => {
+    let activeLogs = new Set();
+    let selectedAttack = null;
+    let lastReport = "";
+
+    sources.forEach(s => {
         const btn = document.createElement('button');
-        btn.className = "p-4 bg-slate-800 border border-slate-700 rounded-lg hover:border-blue-500 transition text-sm font-medium";
-        btn.innerText = item.name;
+        btn.className = "p-3 bg-slate-800 border border-slate-700 rounded text-xs hover:border-blue-500 transition";
+        btn.innerText = s.name;
         btn.onclick = () => {
-            active.has(item.id) ? active.delete(item.id) : active.add(item.id);
+            activeLogs.has(s.id) ? activeLogs.delete(s.id) : activeLogs.add(s.id);
             btn.classList.toggle('card-active');
         };
-        logGrid.appendChild(btn);
+        document.getElementById('logGrid').appendChild(btn);
     });
 
-    // Simulation starten
-    document.getElementById('runBtn').onclick = () => {
-        simulationOutput.innerHTML = `<div class='text-blue-400 animate-pulse'>Analysiere Sicherheitslücken...</div>`;
+    attacks.forEach(a => {
+        const btn = document.createElement('button');
+        btn.className = "p-3 bg-slate-800 border border-slate-700 rounded text-sm hover:border-orange-500 transition";
+        btn.innerText = a.name;
+        btn.onclick = () => {
+            document.querySelectorAll('#attackGrid button').forEach(b => b.classList.remove('attack-active'));
+            selectedAttack = a;
+            btn.classList.add('attack-active');
+        };
+        document.getElementById('attackGrid').appendChild(btn);
+    });
+
+    document.getElementById('runBtn').onclick = async () => {
+        if(!selectedAttack) return alert('Wähle einen Angriff!');
+        const res = document.getElementById('simResult');
+        const copyBtn = document.getElementById('copyBtn');
         
-        setTimeout(() => {
-            const missing = data.filter(d => !active.has(d.id));
-            
-            if (missing.length === 0) {
-                simulationOutput.innerHTML = `
-                    <div class='bg-green-900/30 p-4 border border-green-700 rounded-lg'>
-                        <h3 class='text-green-400 font-bold text-lg'>✅ Alles sicher!</h3>
-                        <p class='text-sm mt-2'>Deine Sicherheitsabdeckung ist exzellent. Angriffe werden sofort erkannt und korreliert.</p>
-                    </div>`;
-            } else {
-                simulationOutput.innerHTML = `<h3 class='text-red-500 font-bold mb-3 glitch-text'>⚠️ SCHWERE LÜCKEN GEFUNDEN!</h3>` + 
-                missing.map(m => `
-                    <div class='mb-4 border-l-4 border-red-500 pl-3'>
-                        <strong class='text-red-300'>${m.name} fehlt:</strong> 
-                        <p class='text-xs text-slate-300 mt-1'>${m.impact}</p>
-                    </div>`).join('');
-            }
-        }, 1200);
+        res.innerHTML = "🔍 Scanne Umgebung...";
+        await new Promise(r => setTimeout(r, 1000));
+        
+        const missing = selectedAttack.req.filter(r => !activeLogs.has(r));
+        const date = new Date().toLocaleDateString('de-DE');
+
+        if(missing.length === 0) {
+            lastReport = `SECURITY HEALTH REPORT (${date})\n------------------------------\nAngriff: ${selectedAttack.name}\nStatus: VOLLSTÄNDIG ABGEWEHRT\nErgebnis: Sicherheitssysteme haben den Angriff erfolgreich korreliert.`;
+            res.innerHTML = `<div class='text-green-400 font-bold text-lg'>✅ ABGEWEHRT</div><p class='mt-2'>Angriff erkannt und gestoppt.</p>`;
+        } else {
+            lastReport = `SECURITY HEALTH REPORT (${date})\n------------------------------\nAngriff: ${selectedAttack.name}\nStatus: EINBRUCH ERFOLGREICH\nRisiko: Angriff konnte nicht erkannt werden.\nFehlende Quellen: ${missing.join(', ')}\nEmpfehlung: Implementierung der fehlenden Logquellen zur Schließung der Sicherheitslücke.`;
+            res.innerHTML = `<div class='text-red-500 font-bold text-lg'>❌ EINBRUCH</div><p class='mt-2'>Der Hacker war erfolgreich. Fehlend: <strong>${missing.join(', ')}</strong>.</p>`;
+        }
+        copyBtn.classList.remove('hidden');
+    };
+
+    document.getElementById('copyBtn').onclick = () => {
+        navigator.clipboard.writeText(lastReport);
+        alert('Bericht in Zwischenablage kopiert!');
     };
 </script>
 </body>
