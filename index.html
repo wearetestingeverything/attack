@@ -3,487 +3,579 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XDR vs. Human SOC Simulator</title>
+    <title>🛡️ SOC-Simulator – Logquellen vs. Angriffe</title>
     <style>
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: #111827;
-            --card-header: #1f2937;
-            --border-color: #374151;
-            --text-color: #d1d5db;
-            --text-muted: #9ca3af;
-            --accent-blue: #3b82f6;
-            --accent-blue-hover: #2563eb;
-            --success-green: #10b981;
-            --error-red: #ef4444;
-            --warning-orange: #f59e0b;
-            --purple: #a78bfa;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
+            background: linear-gradient(145deg, #0b0e1a 0%, #141b2b 100%);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
-            line-height: 1.5;
+            color: #e8edf5;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .sim-card {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(22, 30, 48, 0.85);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 32px 36px;
+            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.2s ease;
         }
 
-        header {
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 25px;
-            margin-bottom: 30px;
-        }
-
-        header h1 {
-            color: #ffffff;
-            font-size: 2.2rem;
-            margin: 0 0 10px 0;
-            font-weight: 800;
-        }
-
-        .badge-expert {
-            display: inline-block;
-            background-color: rgba(167, 139, 250, 0.1);
-            border: 1px solid rgba(167, 139, 250, 0.3);
-            color: var(--purple);
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.8rem;
+        h1 {
+            font-size: 2.5rem;
             font-weight: 600;
-            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .sub {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .sub p {
+            color: #9aa8c7;
+            font-weight: 400;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 6px 18px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .badge-soc {
+            background: #00e5a0;
+            color: #0b1a1a;
+            font-weight: 600;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
             text-transform: uppercase;
         }
 
-        .dashboard-grid {
+        .grid-2col {
             display: grid;
-            grid-template-columns: 380px 1fr;
-            gap: 25px;
+            grid-template-columns: 1.1fr 1.9fr;
+            gap: 30px;
         }
 
-        .panel {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
+        @media (max-width: 900px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .sim-card {
+                padding: 22px 18px;
+            }
+
+            h1 {
+                font-size: 1.9rem;
+            }
         }
 
-        .panel-header {
-            background-color: var(--card-header);
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
+        /* ----- Linke Spalte: Logquellen ----- */
+        .log-section {
+            background: rgba(12, 18, 30, 0.6);
+            border-radius: 32px;
+            padding: 24px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
         }
 
-        .panel-header h2 {
-            font-size: 1.1rem;
-            margin: 0;
-            color: #ffffff;
-        }
-
-        .panel-body {
-            padding: 20px;
-        }
-
-        .source-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
-        .source-option {
-            background: rgba(31, 41, 55, 0.5);
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-        }
-
-        label {
-            cursor: pointer;
+        .log-section h2 {
+            font-weight: 500;
+            font-size: 1.3rem;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
-            width: 100%;
-            font-weight: 500;
-        }
-        
-        input[type="checkbox"] {
-            margin-right: 12px;
-            transform: scale(1.2);
-            accent-color: var(--purple);
-        }
-        
-        select {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            border-radius: 6px;
-            margin-bottom: 20px;
+            gap: 10px;
+            color: #ccdbf9;
         }
 
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--purple);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        button:hover { background-color: #8b5cf6; }
-
-        .pipeline {
+        .log-grid {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
+            margin: 18px 0 24px 0;
         }
 
-        .node-row {
+        .log-item {
             display: flex;
-            justify-content: space-around;
-            gap: 12px;
             align-items: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 18px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .log-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .log-item.active {
+            background: rgba(0, 180, 255, 0.12);
+            border-color: #00b4ff;
+            box-shadow: 0 0 0 1px #00b4ff44;
+        }
+
+        .log-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00b4ff;
+            transform: scale(1.1);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .log-item .label {
+            font-weight: 450;
+            font-size: 1rem;
+        }
+
+        .log-item .desc {
+            font-size: 0.8rem;
+            color: #9aa8c7;
+            margin-left: auto;
+            padding-left: 8px;
+            opacity: 0.8;
+        }
+
+        .log-stats {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 30px;
+            padding: 14px 20px;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .log-stats span {
+            color: #a8bbdd;
+        }
+
+        .log-stats strong {
+            color: #f0f5ff;
+            font-weight: 500;
+        }
+
+        /* ----- Rechte Spalte: Angriffe + SIEM ----- */
+        .attack-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .attack-selector {
+            background: rgba(12, 18, 30, 0.5);
+            border-radius: 28px;
+            padding: 20px 22px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .attack-selector h3 {
+            font-weight: 500;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attack-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .attack-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 20px;
+            border-radius: 60px;
+            color: #d3def5;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1 0 auto;
+        }
+
+        .attack-btn:hover {
+            background: rgba(255, 255, 255, 0.09);
+            border-color: #7a8bb0;
+        }
+
+        .attack-btn.selected {
+            background: #f97316;
+            border-color: #f97316;
+            color: #0b0e1a;
+            box-shadow: 0 0 16px #f9731666;
+        }
+
+        .attack-desc {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 14px 18px;
+            border-radius: 20px;
+            border-left: 4px solid #f97316;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #c8d6f0;
+            min-height: 70px;
+        }
+
+        .attack-desc strong {
+            color: #f0f5ff;
+        }
+
+        /* SIEM-Ergebnis */
+        .siem-box {
+            background: rgba(8, 14, 26, 0.7);
+            border-radius: 28px;
+            padding: 22px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+        }
+
+        .siem-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
             flex-wrap: wrap;
         }
 
-        .node {
-            background: rgba(31, 41, 55, 0.6);
-            border: 2px solid var(--border-color);
-            padding: 12px 10px;
-            border-radius: 6px;
-            text-align: center;
-            flex: 1;
-            min-width: 100px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            transition: all 0.4s ease;
+        .siem-header h3 {
+            font-weight: 500;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .node.active-log {
-            border-color: var(--warning-orange);
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
-            background: rgba(245, 158, 11, 0.1);
-            color: #ffffff;
+        .siem-result {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 30px;
+            padding: 14px 22px;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: all 0.3s ease;
         }
 
-        .node.siem {
-            min-width: 100%;
-            padding: 18px;
+        .siem-result .verdict {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .siem-result .detail {
+            font-size: 0.95rem;
+            color: #b0c2e5;
+            margin-top: 4px;
+        }
+
+        .siem-result .highlight-green {
+            color: #4ade80;
+        }
+        .siem-result .highlight-red {
+            color: #f87171;
+        }
+        .siem-result .highlight-orange {
+            color: #fb923c;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: #00b4ff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 60px;
+            font-weight: 600;
             font-size: 1rem;
-        }
-        .node.siem.processing {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-            color: #ffffff;
-        }
-
-        .node.soc-alert {
-            min-width: 100%;
-            padding: 18px;
-            font-size: 1rem;
-        }
-        .node.soc-alert.triggered {
-            border-color: var(--error-red);
-            background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            animation: pulse 2s infinite;
-        }
-        .node.soc-alert.human-win {
-            border-color: var(--success-green);
-            background: rgba(16, 185, 129, 0.15);
-            color: #a7f3d0;
-        }
-        .node.soc-alert.missed {
-            border-color: var(--error-red);
-            background: rgba(31, 41, 55, 0.4);
-            color: var(--error-red);
-            opacity: 0.6;
+            color: #0b0e1a;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 8px 20px -8px #00b4ff55;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        .btn-primary:hover {
+            background: #3cc6ff;
+            transform: scale(1.01);
+            box-shadow: 0 12px 28px -8px #00b4ff88;
         }
 
-        .arrow {
-            text-align: center;
-            font-size: 22px;
-            color: var(--border-color);
-            transition: color 0.4s;
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px 28px;
+            border-radius: 60px;
+            font-weight: 500;
+            color: #c8d6f0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1 0 auto;
         }
-        .arrow.active { color: var(--accent-blue); }
 
-        .log-console {
-            background-color: #070a12;
-            border: 1px solid var(--border-color);
-            font-family: monospace;
-            padding: 15px;
-            border-radius: 6px;
-            height: 160px;
-            overflow-y: auto;
-            margin-top: 15px;
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .footnote {
+            margin-top: 24px;
             font-size: 0.85rem;
+            text-align: center;
+            color: #6a7fa0;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 20px;
+            letter-spacing: 0.2px;
         }
 
-        .log-entry { margin-bottom: 6px; padding-left: 8px; border-left: 3px solid #4b5563; }
-        .log-warn { color: #fbbf24; border-left-color: var(--warning-orange); }
-        .log-alert { color: #f87171; font-weight: bold; border-left-color: var(--error-red); }
-        .log-success { color: #34d399; border-left-color: var(--success-green); }
-
-        .analysis-section {
-            grid-column: span 2;
-            margin-top: 10px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-
-        .explanation-panel {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 25px;
-            display: none;
-        }
-        
-        .explanation-title {
-            font-weight: 800;
-            font-size: 1.25rem;
-            margin-bottom: 15px;
-        }
-
-        .architecture-guide {
-            grid-column: span 2;
-            background: linear-gradient(145deg, #111827, #1f2937);
-            border: 1px solid #374151;
-            border-radius: 8px;
-            padding: 30px;
-            margin-top: 10px;
-        }
-
-        .arch-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-        }
-
-        .arch-card {
-            background: rgba(17, 24, 39, 0.5);
-            padding: 20px;
-            border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.02);
-        }
-
-        .arch-card h4 {
-            margin-top: 0;
-            color: var(--purple);
-            font-size: 1.1rem;
-            margin-bottom: 10px;
+        .footnote strong {
+            color: #a0b8dd;
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <header>
-        <span class="badge-expert">Advanced Security Architecture</span>
-        <h1>EDR vs. XDR vs. Human SOC Intelligence</h1>
-        <p>Interaktives Dashboard: Warum Technologie allein geblendet wird und der Mensch im SOC den Unterschied macht</p>
-    </header>
-
-    <div class="dashboard-grid">
-        <div class="panel">
-            <div class="panel-header"><h2>1. Sicherheits-Infrastruktur</h2></div>
-            <div class="panel-body">
-                <div class="source-grid">
-                    <div class="source-option"><label><input type="checkbox" id="src-edr"> Silo 1: Legacy EDR (Nur Endpoint)</label></div>
-                    <div class="source-option"><label><input type="checkbox" id="src-xdr" checked> Integrierte XDR-Plattform</label></div>
-                    <div class="source-option"><label><input type="checkbox" id="src-ndr" checked> Network Detection (NDR)</label></div>
-                    <div class="source-option"><label><input type="checkbox" id="src-ad"> Active Directory Logs</label></div>
-                </div>
-                <select id="attack-select">
-                    <option value="silo_fail">Warum EDR alleine versagt (Verschlüsselung via Netzwerklaufwerk)</option>
-                    <option value="living_off_land">Living-off-the-Land (Wo der Mensch die XDR-KI schlägt!)</option>
-                </select>
-                <button onclick="runSimulation()">Szenario ausführen</button>
+    <div class="sim-card">
+        <div class="sub">
+            <h1>🛡️ SOC·Sim</h1>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <span class="badge-soc">⚡ SIEM aktiv</span>
+                <p>📊 logbasierte Erkennung</p>
             </div>
         </div>
 
-        <div class="panel">
-            <div class="panel-header"><h2>2. Telemetrie & Response-Kette</h2></div>
-            <div class="panel-body">
-                <div class="pipeline">
-                    <div class="node-row">
-                        <div class="node" id="node-edr">EDR Silo</div>
-                        <div class="node" id="node-xdr">XDR Core</div>
-                        <div class="node" id="node-ndr">NDR Telemetrie</div>
-                        <div class="node" id="node-ad">AD Domain Identity</div>
+        <div class="grid-2col">
+            <!-- Linke Spalte: Logquellen -->
+            <div class="log-section">
+                <h2>📂 Logquellen</h2>
+                <p style="color:#9aa8c7; font-size:0.9rem; margin-bottom:6px;">Wähle mindestens eine Quelle – sie werden im SIEM ausgewertet.</p>
+                <div class="log-grid" id="logContainer">
+                    <!-- Dynamisch aus JS -->
+                </div>
+
+                <div class="log-stats">
+                    <span>📌 <strong id="selectedCount">0</strong> aktiv</span>
+                    <span>🧩 <span id="logNamesShort">keine</span></span>
+                </div>
+            </div>
+
+            <!-- Rechte Spalte: Angriff & SIEM -->
+            <div class="attack-panel">
+                <div class="attack-selector">
+                    <h3>⚔️ Angriffsszenario</h3>
+                    <div class="attack-buttons" id="attackContainer">
+                        <!-- dynamisch -->
                     </div>
-                    <div class="arrow" id="arrow-to-siem">▼</div>
-                    <div class="node-row"><div class="node siem" id="node-siem">SIEM Enterprise Correlation Platform</div></div>
-                    <div class="arrow" id="arrow-to-soc">▼</div>
-                    <div class="node-row"><div class="node soc-alert" id="node-soc">SOC Command Center (Warte...)</div></div>
+                    <div class="attack-desc" id="attackDescription">
+                        <strong>📋</strong> Wähle einen Angriffstyp, um die Simulation zu starten.
+                    </div>
                 </div>
-                <div class="log-console" id="console">
-                    <div class="log-entry">[SYSTEM] Analyse-Bereit. Wählen Sie ein Szenario aus, um die Grenzen der Technologie zu sehen.</div>
+
+                <div class="siem-box">
+                    <div class="siem-header">
+                        <h3>🧠 SIEM‑Analyse</h3>
+                        <span style="font-size:0.85rem; background:rgba(255,255,255,0.04); padding:4px 14px; border-radius:40px;">Echtzeit‑Bewertung</span>
+                    </div>
+                    <div class="siem-result" id="siemResult">
+                        <div class="verdict" style="color:#7a8bb0;">⏳ Bereit</div>
+                        <div class="detail">Wähle Angriff und Logquellen aus.</div>
+                    </div>
+
+                    <div class="action-row">
+                        <button class="btn-primary" id="simulateBtn">🔍 Simulation starten</button>
+                        <button class="btn-secondary" id="resetBtn">⟲ Zurücksetzen</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="analysis-section">
-            <div class="explanation-panel" id="exp-success-box">
-                <div class="explanation-title" id="success-title" style="color: var(--success-green);">🟢 Status</div>
-                <div id="exp-success-text"></div>
-            </div>
-            <div class="explanation-panel" id="exp-fail-box">
-                <div class="explanation-title" style="color: var(--error-red);">🔴 Detektions-Defizit</div>
-                <div id="exp-fail-text"></div>
-            </div>
-        </div>
-
-        <div class="architecture-guide">
-            <h3 style="color:#fff; margin-top:0;">Strategischer Vergleich: Technologie-Grenzen & Menschlicher Mehrwert</h3>
-            <div class="arch-grid">
-                <div class="arch-card">
-                    <h4>Warum EDR alleine blind ist</h4>
-                    <p style="margin:0; font-size:0.9rem; color:var(--text-color);">Ein EDR überwacht nur installierte Agenten auf Laptops/Servern. Greift ein Angreifer ungepatchte IoT-Geräte, Router oder Netzlaufwerke direkt über das Netzwerk an, sieht das EDR absolut nichts. Es agiert im Datensilo.</p>
-                </div>
-                <div class="arch-card">
-                    <h4>Was XDR leistet (und was nicht)</h4>
-                    <p style="margin:0; font-size:0.9rem; color:var(--text-color);">XDR bricht die Silos auf und korreliert Endpoint, Mail und Identity automatisiert per KI. <strong>Aber:</strong> XDR entscheidet regelbasiert. Wenn ein Angreifer sich exakt wie ein normaler Admin verhält, blockiert die XDR nicht, um den Betrieb nicht lahmzulegen.</p>
-                </div>
-                <div class="arch-card">
-                    <h4>Der Faktor Mensch (Das SOC)</h4>
-                    <p style="margin:0; font-size:0.9rem; color:var(--text-color);">Ein SOC-Analyst bringt <strong>Kontext</strong> mit. Er sieht die Anomalie im Verhalten (z.B. ungewöhnliche Uhrzeit oder untypische Befehlsreihenfolge eines Admins) und verifiziert den Vorfall durch direkten Kontakt. Menschen erkennen Intentionen, Software nur Muster.</p>
-                </div>
-            </div>
+        <div class="footnote">
+            <strong>🧑‍💻 SOC‑Sim</strong> · Zeigt, wie essenziell die richtige Logauswahl für die Angriffserkennung im SIEM ist. 
+            Nur mit passenden Quellen werden Angriffe sichtbar.
         </div>
     </div>
-</div>
 
-<script>
-    const scenarios = {
-        silo_fail: {
-            name: "Verschlüsselung via Netzlaufwerk (EDR-Silo-Versagen)",
-            steps: [
-                { time: 300, log: "INFO - EDR: Lokaler PC unauffällig. Keine schädlichen Prozesse lokal gestartet.", node: "node-edr", src: "src-edr" },
-                { time: 800, log: "WARN - NDR: Massenhafte SMB-Dateimodifikationen auf zentralem Storage-Server via IP-04.", node: "node-ndr", src: "src-ndr" }
-            ],
-            detectCondition: (src) => src['src-ndr'],
-            whySuccess: "<strong>Erkannt durch NDR/XDR:</strong> Da ein EDR-Silo auf dem Storage-System keine Aktivitäten sieht (weil der Angriff remote über das Netzwerk erfolgt), rettet hier nur das **NDR** oder die **XDR** die Situation, indem sie den anormalen Traffic-Anstieg auf dem Netzwerkprotokoll (SMB) korreliert.",
-            whyFail: "<strong>Ganzheitlicher Schaden:</strong> Wenn das Unternehmen nur auf **EDR** gesetzt hat, bleibt das System stumm. Die Ransomware verschlüsselt das gesamte Netzlaufwerk von einem unüberwachten Device aus. Das EDR meldet fälschlicherweise: 'Alles grün!'"
-        },
-        living_off_land: {
-            name: "Living-off-the-Land (Die XDR-Täuschung)",
-            steps: [
-                { time: 300, log: "INFO - XDR: Valider Login von Admin-Konto 'b.schmidt' via VPN. Keine Anomalie.", node: "node-xdr", src: "src-xdr" },
-                { time: 800, log: "WARN - AD: Admin-Konto exportiert AD-Datenbank via PowerShell (Standard-Wartungsbefehl).", node: "node-ad", src: "src-ad" }
-            ],
-            detectCondition: (src) => src['src-xdr'] && src['src-ad'], // Technisch erfasst, aber automatisiert nicht blockiert
-            humanLogic: true, // Spezielles Flag für SOC Sieg
-            whySuccess: "<strong>Technologie versagt – Mensch gewinnt!</strong> Die XDR sieht nur legitime Admin-Aktionen und blockiert <strong>nicht</strong> automatisch, da ein Fehlalarm die IT lahmlegen würde. **Aber das SOC schlägt an:** Der Analyst bemerkt, dass 'b.schmidt' laut HR-Kalender aktuell im Urlaub ist. Ein kurzer Kontrollanruf bestätigt den Identitätsdiebstahl. Der Analyst sperrt den User manuell. Die menschliche Intuition hat den Datenabzug gestoppt!",
-            whyFail: "<strong>XDR-Blindheit durch Legalität:</strong> Ohne ein menschliches SOC läuft dieser Angriff zu 100% durch. Die XDR schließt das Ticket als 'legitime administrative Tätigkeit'. Der Angreifer verlässt das Netz mit allen Passwörtern."
-        }
-    };
+    <script>
+        (function() {
+            // ------ DATEN ------
+            const logSources = [
+                { id: 'fw', label: '🛡️ Firewall', desc: 'Netzwerk‑/Packet‑Logs' },
+                { id: 'ids', label: '🔍 IDS/IPS', desc: 'Intrusion Detection' },
+                { id: 'ad', label: '👤 Active Directory', desc: 'Authentifizierung, LDAP' },
+                { id: 'proxy', label: '🌐 Proxy', desc: 'Web‑Verkehr, URLs' },
+                { id: 'endpoint', label: '💻 Endpoint', desc: 'EDR, Prozesse, Dateien' },
+                { id: 'dns', label: '📡 DNS', desc: 'Anfragen, Auflösungen' }
+            ];
 
-    function logToConsole(text, type = 'info') {
-        const consoleEl = document.getElementById('console');
-        const timestamp = new Date().toLocaleTimeString();
-        const entry = document.createElement('div');
-        entry.className = `log-entry log-${type}`;
-        entry.innerHTML = `[${timestamp}] ${text}`;
-        consoleEl.appendChild(entry);
-        consoleEl.scrollTop = consoleEl.scrollHeight;
-    }
-
-    function resetPipeline() {
-        document.querySelectorAll('.node').forEach(n => {
-            n.className = 'node';
-            if(n.id === 'node-siem') n.classList.add('siem');
-            if(n.id === 'node-soc') { n.classList.add('soc-alert'); n.innerText = "SOC Analyst Dashboard (Analysiere...)"; }
-        });
-        document.querySelectorAll('.arrow').forEach(a => a.classList.remove('active'));
-        document.getElementById('exp-success-box').style.display = 'none';
-        document.getElementById('exp-fail-box').style.display = 'none';
-    }
-
-    function runSimulation() {
-        resetPipeline();
-        const attackKey = document.getElementById('attack-select').value;
-        const scenario = scenarios[attackKey];
-        
-        logToConsole(`⚡ Initiiere Bedrohung: <strong>${scenario.name}</strong>...`, 'warn');
-
-        const srcStatus = {
-            'src-edr': document.getElementById('src-edr').checked,
-            'src-xdr': document.getElementById('src-xdr').checked,
-            'src-ndr': document.getElementById('src-ndr').checked,
-            'src-ad': document.getElementById('src-ad').checked
-        };
-
-        scenario.steps.forEach(step => {
-            setTimeout(() => {
-                const isSourceEnabled = srcStatus[step.src];
-                if (isSourceEnabled) {
-                    document.getElementById(step.node).classList.add('active-log');
-                    logToConsole(step.log, 'warn');
-                    document.getElementById('arrow-to-siem').classList.add('active');
-                    document.getElementById('node-siem').classList.add('processing');
-                } else {
-                    logToConsole(`[SILO LÜCKE] Telemetrie auf ${document.getElementById(step.node).innerText} vorhanden, aber mangels Sensorik nicht im SIEM/XDR erfasst.`, 'info');
+            const attacks = [
+                { 
+                    id: 'phishing', 
+                    label: '🎣 Phishing',
+                    description: 'Mitarbeiter klickt auf bösartigen Link. Credentials werden über Fake‑Login abgefischt.',
+                    detection: {
+                        required: ['proxy', 'ad'],     // benötigte Logs für Erkennung
+                        optional: ['dns', 'endpoint'],
+                        message: (hasRequired) => hasRequired 
+                            ? '✅ Phishing erkannt! Proxy zeigt verdächtige Domain, AD zeigt ungewöhnliche Anmeldung.' 
+                            : '❌ Phishing nicht erkannt – Proxy‑ oder AD‑Logs fehlen.'
+                    }
+                },
+                {
+                    id: 'ransomware',
+                    label: '💀 Ransomware',
+                    description: 'Verschlüsselungstrojaner verbreitet sich über SMB / E-Mail. Verschlüsselt Dateien und hinterlässt Lösegeldforderung.',
+                    detection: {
+                        required: ['endpoint', 'ids'],
+                        optional: ['fw', 'dns'],
+                        message: (hasRequired) => hasRequired 
+                            ? '✅ Ransomware erkannt! EDR zeigt massenhafte Dateiänderungen, IDS erkennt bekannte Signatur.' 
+                            : '❌ Ransomware unentdeckt – Endpoint‑ oder IDS‑Logs sind nicht aktiv.'
+                    }
+                },
+                {
+                    id: 'dataexfil',
+                    label: '📤 Datenexfiltration',
+                    description: 'Angreifer schleust grosse Datenmengen über DNS‑Tunneling oder ungewöhnliche SSL‑Verbindungen aus.',
+                    detection: {
+                        required: ['dns', 'proxy'],
+                        optional: ['fw', 'endpoint'],
+                        message: (hasRequired) => hasRequired 
+                            ? '✅ Datenabfluss erkannt! DNS‑Tunnel erkannt, Proxy zeigt massiven Upload.' 
+                            : '❌ Datenexfiltration nicht sichtbar – DNS‑ oder Proxy‑Logs fehlen.'
+                    }
+                },
+                {
+                    id: 'bruteforce',
+                    label: '🔑 Brute‑Force',
+                    description: 'Angreifer probiert tausende Passwörter gegen AD / VPN / SSH. Auffällige Anmeldefehler.',
+                    detection: {
+                        required: ['ad', 'fw'],
+                        optional: ['ids'],
+                        message: (hasRequired) => hasRequired 
+                            ? '✅ Brute‑Force erkannt! AD zeigt massenhaft fehlgeschlagene Anmeldungen, Firewall blockiert IP.' 
+                            : '❌ Brute‑Force nicht erkannt – Active Directory‑ oder Firewall‑Logs fehlen.'
+                    }
                 }
-            }, step.time);
-        });
+            ];
 
-        setTimeout(() => {
-            const isDetected = scenario.detectCondition(srcStatus);
-            const socNode = document.getElementById('node-soc');
-            const successBox = document.getElementById('exp-success-box');
-            const failBox = document.getElementById('exp-fail-box');
-            const successTitle = document.getElementById('success-title');
+            // ------ STATE ------
+            let selectedLogs = new Set(); // enthält log.id
+            let selectedAttackId = null;
 
-            document.getElementById('arrow-to-soc').classList.add('active');
-            successBox.style.display = 'block';
-            failBox.style.display = 'block';
+            // DOM refs
+            const logContainer = document.getElementById('logContainer');
+            const attackContainer = document.getElementById('attackContainer');
+            const attackDescription = document.getElementById('attackDescription');
+            const siemResult = document.getElementById('siemResult');
+            const selectedCountSpan = document.getElementById('selectedCount');
+            const logNamesShort = document.getElementById('logNamesShort');
 
-            if (isDetected) {
-                if (scenario.humanLogic) {
-                    // Szenario 2: Mensch triumphierte über reine Software
-                    socNode.className = 'node soc-alert human-win';
-                    socNode.innerText = `🟢 SOC HUMAN TRIUMPH: Angriff manuell vereitelt!`;
-                    logToConsole(`🏆 [MENSCHLICHE INTUITION] SOC-Analyst entlarvt Identitätsdiebstahl trotz legitimer Tools.`, 'success');
-                    successTitle.innerText = "🟢 SOC-Analyst schlägt XDR-Automatismus";
-                    document.getElementById('exp-success-text').innerHTML = scenario.whySuccess;
-                    document.getElementById('exp-fail-text').innerHTML = "<span style='color:var(--text-muted);'>Die XDR-Plattform allein hätte diesen legitimen Admin-Befehl durchgewinkt.</span>";
-                } else {
-                    // Szenario 1: Technische Erkennung via Cross-Telemetry
-                    socNode.className = 'node soc-alert triggered';
-                    socNode.innerText = `🚨 AUTOMATED ALERT: Angriff gestoppt`;
-                    logToConsole(`🔥 [SIEM MATCH] Cross-Silo-Telemetrie hat gegriffen.`, 'alert');
-                    successTitle.innerText = "🟢 Technische Korrelation erfolgreich";
-                    document.getElementById('exp-success-text').innerHTML = scenario.whySuccess;
-                    document.getElementById('exp-fail-text').innerHTML = "<span style='color:var(--text-muted);'>Die XDR/NDR-Schutzschicht war ausreichend.</span>";
-                }
-            } else {
-                socNode.className = 'node soc-alert missed';
-                socNode.innerText = `💀 INTRUSION SUCCESSFUL: Blackout`;
-                logToConsole(`❌ [BREACH] Der Angriff lief ungesehen unter dem Radar durch.`, 'alert');
-                document.getElementById('exp-success-text').innerHTML = "<span style='color:var(--text-muted);'>Sicherheitssoftware blieb stumm.</span>";
-                document.getElementById('exp-fail-text').innerHTML = scenario.whyFail;
+            // ------ RENDER LOGS ------
+            function renderLogs() {
+                logContainer.innerHTML = '';
+                logSources.forEach(log => {
+                    const div = document.createElement('div');
+                    div.className = `log-item ${selectedLogs.has(log.id) ? 'active' : ''}`;
+                    div.innerHTML = `
+                        <input type="checkbox" ${selectedLogs.has(log.id) ? 'checked' : ''} 
+                               data-logid="${log.id}" id="log_${log.id}">
+                        <label for="log_${log.id}" class="label">${log.label}</label>
+                        <span class="desc">${log.desc}</span>
+                    `;
+                    // Event Listener für Checkbox
+                    const checkbox = div.querySelector('input[type="checkbox"]');
+                    checkbox.addEventListener('change', function(e) {
+                        e.stopPropagation();
+                        const id = this.dataset.logid;
+                        if (this.checked) {
+                            selectedLogs.add(id);
+                        } else {
+                            selectedLogs.delete(id);
+                        }
+                        updateLogUI();
+                        updateSiemMessage('⏳ Bereit', 'Logauswahl geändert – starte Simulation neu.', '#7a8bb0');
+                    });
+                    // Klick auf gesamtes item toggelt checkbox
+                    div.addEventListener('click', function(e) {
+                        if (e.target.tagName !== 'INPUT') {
+                            const cb = this.querySelector('input[type="checkbox"]');
+                            cb.checked = !cb.checked;
+                            cb.dispatchEvent(new Event('change'));
+                        }
+                    });
+                    logContainer.appendChild(div);
+                });
+                updateLogUI();
             }
-        }, 1800);
-    }
-</script>
-</body>
-</html>
+
+            function updateLogUI() {
+                const count = selectedLogs.size;
+                selectedCountSpan.textContent = count;
+                const names = logSources.filter(l => selectedLogs.has(l.id)).map(l => l.label.replace(/[^a-zA-Z]/g,'')).join(', ') || 'keine';
+                logNamesShort.textContent = names || '—';
+
+                // active class auf items
+                document.querySelectorAll('.log-item').forEach(item => {
+                    const cb = item.querySelector('input[type="checkbox"]');
+                    if (cb) {
+                        item.classList.toggle('active', cb.checked);
+                    }
+                });
+            }
+
+            // ------ RENDER ATTACKS ------
+            function renderAttacks() {
+                attackContainer.innerHTML = '';
+                attacks.forEach(attack => {
+                    const btn = document.createElement('button');
+                    btn.className = `attack-btn ${selectedAttackId === attack.id ? 'selected' : ''}`;
+                    btn.dataset.attackid = attack.id;
+                    btn.textContent = attack.label;
+                    btn.addEventListener('click', function() {
+                        selectedAttackId 
