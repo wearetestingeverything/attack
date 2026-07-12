@@ -2,65 +2,84 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Cyber Defense Sim | A1 Edition</title>
+    <title>SOC Exposure Simulator | Enterprise Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #050505; color: #e2e8f0; }
+        body { background: #050505; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
         .cyber-card { background: #0f172a; border: 1px solid #1e293b; transition: all 0.3s; }
-        .active-glow { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
-        .alarm-bg { animation: flash-red 1s infinite; }
-        @keyframes flash-red { 0%, 100% { border-color: #ef4444; } 50% { border-color: #7f1d1d; } }
-        .success-bg { border-color: #22c55e; }
+        .active-glow { border-color: #3b82f6 !important; background: #1e3a8a !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+        .attack-active { border-color: #f59e0b !important; background: #78350f !important; }
+        @keyframes flash { 0%, 100% { border-color: #ef4444; box-shadow: 0 0 20px #991b1b; } 50% { border-color: #7f1d1d; } }
+        .alarm { animation: flash 1s infinite; }
+        .success { border-color: #22c55e !important; box-shadow: 0 0 20px #065f46; }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
-<div class="max-w-6xl mx-auto">
-    <h1 class="text-4xl font-black text-white mb-8 text-center uppercase">SOC <span class="text-blue-500">EXPOSURE</span> SIMULATOR</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Quellen -->
+<div class="max-w-7xl mx-auto">
+    <header class="text-center mb-12">
+        <h1 class="text-5xl font-black text-white uppercase tracking-tighter">SOC <span class="text-blue-500">EXPOSURE</span> SIMULATOR</h1>
+        <p class="text-slate-400">Enterprise Security Assessment Tool</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- 1. Logquellen -->
         <div class="space-y-4">
-            <h2 class="text-lg font-bold text-blue-400">1. Überwachungskameras aktivieren:</h2>
-            <div id="logGrid" class="grid grid-cols-2 gap-3"></div>
+            <h2 class="text-xs font-bold text-blue-400 uppercase tracking-widest">1. Infrastruktur (Überwachungskameras)</h2>
+            <div id="logGrid" class="grid grid-cols-2 gap-2"></div>
         </div>
 
-        <!-- Simulation -->
-        <div class="space-y-6">
-            <h2 class="text-lg font-bold text-orange-400">2. Angriff starten:</h2>
-            <div id="attackGrid" class="grid grid-cols-2 gap-3"></div>
-            
-            <div id="result" class="hidden p-6 rounded-2xl border-l-8 bg-slate-900 shadow-xl transition-all">
-                <div id="resultContent" class="text-sm leading-relaxed"></div>
+        <!-- 2. Angriffe -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-bold text-orange-400 uppercase tracking-widest">2. Wähle Angriffsszenario</h2>
+            <div id="attackGrid" class="grid grid-cols-1 gap-2"></div>
+        </div>
+
+        <!-- 3. Analyse -->
+        <div class="space-y-4">
+            <h2 class="text-xs font-bold text-green-400 uppercase tracking-widest">3. Analyse & Bericht</h2>
+            <div id="result" class="p-6 rounded-2xl border-l-8 bg-slate-900 border-slate-700 transition-all min-h-[250px] flex flex-col">
+                <div id="resultContent" class="text-sm">Bereit zur Simulation...</div>
             </div>
-            
-            <button id="runBtn" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold uppercase tracking-widest transition hover:scale-[1.02]">Bedrohung simulieren</button>
+            <button id="runBtn" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold uppercase transition">Simulation starten</button>
+            <button id="copyBtn" class="hidden w-full bg-slate-800 hover:bg-slate-700 py-2 rounded-xl text-xs font-bold uppercase">Bericht kopieren</button>
         </div>
     </div>
 </div>
 
 <script>
     const sources = [
-        { id: 'ad', name: 'AD (Logins)', icon: 'fa-user-shield' },
-        { id: 'edr', name: 'EDR (Viren)', icon: 'fa-microchip' },
-        { id: 'dns', name: 'DNS (Netzwerk)', icon: 'fa-network-wired' },
-        { id: 'fw', name: 'Firewall', icon: 'fa-shield-halved' }
+        { id: 'ad', name: 'Active Directory', icon: 'fa-user-shield' },
+        { id: 'edr', name: 'EDR / Endpoint', icon: 'fa-microchip' },
+        { id: 'mail', name: 'Mail Gateway', icon: 'fa-envelope' },
+        { id: 'fw', name: 'Firewall', icon: 'fa-shield-halved' },
+        { id: 'vpn', name: 'VPN Gateway', icon: 'fa-lock' },
+        { id: 'dns', name: 'DNS Security', icon: 'fa-network-wired' },
+        { id: 'db', name: 'Datenbank', icon: 'fa-database' },
+        { id: 'cloud', name: 'Cloud Logs', icon: 'fa-cloud' },
+        { id: 'proxy', name: 'Web Proxy', icon: 'fa-globe' },
+        { id: 'ids', name: 'IDS / IPS', icon: 'fa-eye' }
     ];
 
     const attacks = [
-        { name: 'Datendiebstahl', req: ['fw', 'dns'], explanation: 'Hacker schleusen Daten über das DNS-Protokoll aus. Da du DNS-Logs nicht überwachst, blieb dieser "Tunnel" völlig unsichtbar.' },
-        { name: 'Ransomware', req: ['edr', 'fw'], explanation: 'Die Ransomware konnte sich unbemerkt im Netz verbreiten, weil der EDR-Scanner die Dateibewegungen nicht melden konnte.' }
+        { name: 'Ransomware', req: ['edr', 'fw', 'ad'], expl: 'Der Virus konnte sich unbemerkt im Netz ausbreiten, weil keine Überwachung der Endgeräte (EDR) oder des Netzwerkverkehrs stattfand.' },
+        { name: 'Datendiebstahl', req: ['fw', 'db', 'dns'], expl: 'Hacker haben Daten über einen DNS-Tunnel nach außen geschleust. Da DNS nicht überwacht wurde, blieb der "Tunnel" unsichtbar.' },
+        { name: 'Phishing', req: ['mail', 'ad', 'proxy'], expl: 'Der erste Zugriff erfolgte per E-Mail. Ohne Mail-Filter und Proxy-Logs konnte der Hacker seine Fake-Seite ungestört betreiben.' },
+        { name: 'Brute-Force', req: ['ad', 'vpn'], expl: 'Automatisierte Versuche, sich mit Passwort-Listen einzuloggen, wurden mangels Überwachung der Anmeldungen nicht gestoppt.' },
+        { name: 'Cloud-Hijack', req: ['cloud', 'ad'], expl: 'Die Cloud-Umgebung wurde übernommen, da keine Log-Überwachung der Cloud-Aktivitäten (API-Aufrufe) aktiv war.' },
+        { name: 'Botnet-Callout', req: ['fw', 'dns'], expl: 'Ein infiziertes Gerät hat Kontakt mit einem Hacker-Server aufgenommen. Ohne DNS/Firewall-Logs konnte dieser Kontakt nicht verhindert werden.' }
     ];
 
     let active = new Set();
     let currentAttack = null;
+    let lastReport = "";
 
-    // UI Aufbau
+    // Render Logquellen
     const logGrid = document.getElementById('logGrid');
     sources.forEach(s => {
         const btn = document.createElement('button');
-        btn.className = "flex items-center gap-3 p-4 cyber-card rounded-xl hover:border-blue-500";
+        btn.className = "flex items-center gap-3 p-3 cyber-card rounded-lg text-xs hover:border-blue-500 transition";
         btn.innerHTML = `<i class="fa ${s.icon} text-blue-500"></i><span>${s.name}</span>`;
         btn.onclick = () => {
             active.has(s.id) ? active.delete(s.id) : active.add(s.id);
@@ -69,36 +88,46 @@
         logGrid.appendChild(btn);
     });
 
+    // Render Angriffe
     const attackGrid = document.getElementById('attackGrid');
     attacks.forEach(a => {
         const btn = document.createElement('button');
-        btn.className = "p-4 cyber-card rounded-xl hover:border-orange-500";
+        btn.className = "p-3 cyber-card rounded-lg text-sm hover:border-orange-500 transition text-left";
         btn.innerText = a.name;
         btn.onclick = () => {
-            document.querySelectorAll('#attackGrid button').forEach(b => b.classList.remove('bg-orange-900/50'));
+            document.querySelectorAll('#attackGrid button').forEach(b => b.classList.remove('attack-active'));
             currentAttack = a;
-            btn.classList.add('bg-orange-900/50', 'border-orange-500');
+            btn.classList.add('attack-active');
         };
         attackGrid.appendChild(btn);
     });
 
-    document.getElementById('runBtn').onclick = () => {
-        if(!currentAttack) return alert('Wähle einen Angriff!');
+    // Run
+    document.getElementById('runBtn').onclick = async () => {
+        if(!currentAttack) return alert('Wähle erst einen Angriff!');
         const res = document.getElementById('result');
         const content = document.getElementById('resultContent');
-        res.classList.remove('hidden', 'alarm-bg', 'success-bg');
+        res.className = "p-6 rounded-2xl border-l-8 bg-slate-900 border-slate-700 transition-all min-h-[250px] flex flex-col";
+        
+        content.innerHTML = "🔍 Scanne Darknet & Netzwerkintegrität...";
+        await new Promise(r => setTimeout(r, 1500));
         
         const missing = currentAttack.req.filter(r => !active.has(r));
-        
         if(missing.length === 0) {
-            res.classList.add('success-bg');
-            content.innerHTML = `<h3 class='text-green-400 font-bold text-lg'>✅ Angriff abgewehrt!</h3><p class='mt-2'>Deine Sicherheits-Tools haben den Hacker sofort erkannt und blockiert.</p>`;
+            res.classList.add('success');
+            content.innerHTML = `<h3 class='text-green-400 font-bold text-xl mb-2'>✅ ABGEWEHRT!</h3><p>Dein Security Operations Center hat den Angriff erkannt und erfolgreich isoliert. Alles sicher.</p>`;
+            lastReport = "STATUS: ABGEWEHRT. Deine Überwachung war ausreichend.";
         } else {
-            res.classList.add('alarm-bg');
-            content.innerHTML = `<h3 class='text-red-400 font-bold text-lg'>❌ Einbruch erfolgreich!</h3>
-                                <p class='mt-2 text-red-200'>Der Angreifer hatte freie Bahn.</p>
-                                <p class='mt-3 font-medium'>Warum? ${currentAttack.explanation}</p>`;
+            res.classList.add('alarm');
+            content.innerHTML = `<h3 class='text-red-500 font-bold text-xl mb-2'>❌ EINBRUCH ERFOLGREICH!</h3><p class='mb-4'>Der Angreifer hatte freie Bahn.</p><div class='bg-red-900/20 p-3 rounded border border-red-800'><strong class='text-red-300'>Warum?</strong><br>${currentAttack.expl}</div>`;
+            lastReport = `STATUS: EINBRUCH ERFOLGREICH.\nFehlende Quellen: ${missing.join(', ')}.\nBegründung: ${currentAttack.expl}`;
+            document.getElementById('copyBtn').classList.remove('hidden');
         }
+    };
+
+    document.getElementById('copyBtn').onclick = () => {
+        navigator.clipboard.writeText(lastReport);
+        alert('Bericht kopiert.');
     };
 </script>
 </body>
